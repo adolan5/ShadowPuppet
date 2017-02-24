@@ -1,5 +1,5 @@
 CC = g++
-C_Flags = -I /usr/include/SDL2 -Wall `sdl2-config --cflags`
+C_Flags = -Wall `sdl2-config --cflags`
 EXE = test
 C_SRCS = test.cc
 
