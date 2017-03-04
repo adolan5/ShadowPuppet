@@ -13,11 +13,22 @@ int main(int argc, char *argv[]){
     //Pointers for our window and renderer, and controller
     SDL_Window *window;
     SDL_Renderer *renderer;
+    SDL_GameController *controller;
+    //Pointers to our various surfaces and textures
     SDL_Surface *backgroundSurface;
     SDL_Texture *background;
-    SDL_GameController *controller;
-    //An event to check if we're still running
+    SDL_Surface *playerSurface;
+    SDL_Texture *playerTexture;
+    //An event to be polled
     SDL_Event event;
+    bool gameRunning = true;
+    
+    //Player rect
+    SDL_Rect player;
+    player.x = 0;
+    player.y = 0;
+    player.w = 40;
+    player.h = 40;
     
     //Creating a window
     if(SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_OPENGL, &window, &renderer)){
@@ -39,8 +50,21 @@ int main(int argc, char *argv[]){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture from background surface! Error: %s\n", SDL_GetError());
         return 1;
     }
-    //Now we're done with the surface, so we can free it
     SDL_FreeSurface(backgroundSurface);
+    //Loading player surface, creating texture
+    playerSurface = SDL_LoadBMP("./images/Smiley.bmp");
+    if(!playerSurface){
+        cerr << argv[0] << ": ";
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load playerSurface from bmp! Error: %s\n", SDL_GetError());
+        return 1;
+    }
+    playerTexture = SDL_CreateTextureFromSurface(renderer, playerSurface);
+    if(!playerTexture){
+        cerr << argv[0] << ": ";
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture from player surface! Error: %s\n", SDL_GetError());
+        return 1;
+    }
+    SDL_FreeSurface(playerSurface);
     
     //Opening the gamepad if one is connected
     bool gamepadConnected = false;
@@ -54,10 +78,11 @@ int main(int argc, char *argv[]){
         gamepadConnected = true;
     }
     
-    while(1){
+    while(gameRunning){
+        //Event Handling
         SDL_PollEvent(&event);
         if(event.type == SDL_QUIT){
-            break;
+            gameRunning = false;
         }
         if((event.type == SDL_CONTROLLERDEVICEADDED) && (!gamepadConnected)){
             int joysticks = SDL_NumJoysticks();
@@ -75,11 +100,18 @@ int main(int argc, char *argv[]){
             gamepadConnected = false;
             cout << "Hit right here\n";
         }
+        
+        //Updating surfaces and rendering
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, background, NULL, NULL);
+        //Add the player
+        SDL_RenderCopy(renderer, playerTexture, NULL, &player);
+        
         SDL_RenderPresent(renderer);
     }
+    SDL_DestroyTexture(background);
+    SDL_DestroyTexture(playerTexture);
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     if(gamepadConnected){
