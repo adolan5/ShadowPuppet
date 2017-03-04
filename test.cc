@@ -3,7 +3,7 @@
 
 using namespace std;
 
-#define MAX_CONTROLLERS 4
+//Function definitions
 
 int main(int argc, char *argv[]){
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0){
@@ -52,13 +52,28 @@ int main(int argc, char *argv[]){
         cout << "Joystick at index: " << joystickIndex << " is a valid game controller\n";
         controller = SDL_GameControllerOpen(joystickIndex);
         gamepadConnected = true;
-        break;
     }
     
     while(1){
         SDL_PollEvent(&event);
         if(event.type == SDL_QUIT){
             break;
+        }
+        if((event.type == SDL_CONTROLLERDEVICEADDED) && (!gamepadConnected)){
+            int joysticks = SDL_NumJoysticks();
+            for(int joystickIndex = 0; joystickIndex < joysticks; ++joystickIndex){
+                if(!SDL_IsGameController(joystickIndex)){
+                    continue;
+                }
+                cout << "Joystick at index: " << joystickIndex << " is a valid game controller\n";
+                controller = SDL_GameControllerOpen(joystickIndex);
+                gamepadConnected = true;
+            }
+        }
+        if(event.type == SDL_CONTROLLERDEVICEREMOVED){
+            SDL_GameControllerClose(controller);
+            gamepadConnected = false;
+            cout << "Hit right here\n";
         }
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
         SDL_RenderClear(renderer);
