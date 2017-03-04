@@ -1,9 +1,11 @@
 #include <iostream>
 #include "SDL.h"
+#include <string>
 
 using namespace std;
 
 //Function definitions
+SDL_Texture *loadTexture(string image, SDL_Renderer *renderer);
 
 int main(int argc, char *argv[]){
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0){
@@ -14,10 +16,8 @@ int main(int argc, char *argv[]){
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_GameController *controller;
-    //Pointers to our various surfaces and textures
-    SDL_Surface *backgroundSurface;
+    //Pointers to our textures
     SDL_Texture *background;
-    SDL_Surface *playerSurface;
     SDL_Texture *playerTexture;
     //An event to be polled
     SDL_Event event;
@@ -37,34 +37,9 @@ int main(int argc, char *argv[]){
         return 1;
     }
     //Loading the background image as a surface
-    backgroundSurface = SDL_LoadBMP("./images/wht-marble.bmp");
-    if(!backgroundSurface){
-        cerr << argv[0] << ": ";
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load backgroundSurface from bmp! Error: %s\n", SDL_GetError());
-        return 1;
-    }
-    //Creating a texture from the above surface
-    background = SDL_CreateTextureFromSurface(renderer, backgroundSurface);
-    if(!background){
-        cerr << argv[0] << ": ";
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture from background surface! Error: %s\n", SDL_GetError());
-        return 1;
-    }
-    SDL_FreeSurface(backgroundSurface);
+    background = loadTexture(string("./images/wht-marble.bmp"), renderer);
     //Loading player surface, creating texture
-    playerSurface = SDL_LoadBMP("./images/Smiley.bmp");
-    if(!playerSurface){
-        cerr << argv[0] << ": ";
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load playerSurface from bmp! Error: %s\n", SDL_GetError());
-        return 1;
-    }
-    playerTexture = SDL_CreateTextureFromSurface(renderer, playerSurface);
-    if(!playerTexture){
-        cerr << argv[0] << ": ";
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture from player surface! Error: %s\n", SDL_GetError());
-        return 1;
-    }
-    SDL_FreeSurface(playerSurface);
+    playerTexture = loadTexture(string("./images/Smiley.bmp"), renderer);
     
     //Opening the gamepad if one is connected
     bool gamepadConnected = false;
@@ -119,4 +94,23 @@ int main(int argc, char *argv[]){
     }
     SDL_Quit();
     return 0;
+}
+
+/*
+Function that takes an image path, creates a surface from the image, and then a texture from the surface
+Params: the path to the image we're using as a c++ string, pointer to the renderer to be used
+*/
+SDL_Texture *loadTexture(string image, SDL_Renderer *renderer){
+        SDL_Surface *surface = SDL_LoadBMP(image.data());
+    if(!surface){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load surface from bmp: %s Error: %s\n", image.data(), SDL_GetError());
+        return NULL;
+    }
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    if(!texture){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture from surface for image: %s Error: %s\n", image.data(), SDL_GetError());
+        return NULL;
+    }
+    SDL_FreeSurface(surface);
+    return texture;
 }
