@@ -1,2 +1,2 @@
-This Repository has been used for testing. Glad to see that everything is working on the Raspberry Pi!
-
+This repository is for the term project in cs370;
+ShadowPuppet is an asymmetric platformer in which one player controls a character who must traverse a level, while another player creates the platforms for the character to jump along, via an Xbox Kinect and 'edge detection'
