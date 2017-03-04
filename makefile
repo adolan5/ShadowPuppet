@@ -1,5 +1,5 @@
 CC = g++
-C_Flags = -I ./SDL/include -Wall `sdl2-config --cflags`
+C_Flags = -Wfatal-errors -I ./SDL/include -Wall `sdl2-config --cflags`
 EXE = test
 C_SRCS = test.cc
 

@@ -10,10 +10,16 @@ int main(int argc, char *argv[]){
         SDL_Log("Unable to initialize SDL: %s\n", SDL_GetError());
     }
     
-    SDL_Window *myWindow;
-    myWindow = SDL_CreateWindow("My window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
-    //An array of pointers to game controller structures
+    //Pointers for our window and renderer, and controller
+    SDL_Window *window;
+    SDL_Renderer *renderer;
     SDL_GameController *controller;
+    
+    //Creating a window
+    if(SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_OPENGL, &window, &renderer)){
+        SDL_Log("Unable to create window and renderer: %s\n", SDL_GetError());
+    }
+    
     //The number of joysticks detected by SDL
     int joysticks = SDL_NumJoysticks();
     for(int joystickIndex = 0; joystickIndex < joysticks; ++joystickIndex){
@@ -25,7 +31,8 @@ int main(int argc, char *argv[]){
         break;
     }
     SDL_Delay(3000);
-    SDL_DestroyWindow(myWindow);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
     SDL_GameControllerClose(controller);
     SDL_Quit();
     return 0;
