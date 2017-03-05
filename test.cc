@@ -38,7 +38,7 @@ int main(int argc, char *argv[]){
         return 1;
     }
     //Loading the background image as a surface
-    background = loadTexture(string("./images/wht-marble.bmp"), renderer);
+    background = loadTexture(string("./images/wht-marbleTest.bmp"), renderer);
     if(background == NULL){
         cerr << argv[0] << ": ";
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create background texture from passed string! Error: %s\n", SDL_GetError());
