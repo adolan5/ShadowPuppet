@@ -26,7 +26,7 @@ int main(int argc, char *argv[]){
     //Player rect
     SDL_Rect player;
     player.x = 0;
-    player.y = 0;
+    player.y = 440;
     player.w = 40;
     player.h = 40;
     
@@ -56,9 +56,11 @@ int main(int argc, char *argv[]){
     while(gameRunning){
         //Event Handling
         SDL_PollEvent(&event);
+        //In case of quit
         if(event.type == SDL_QUIT){
             gameRunning = false;
         }
+        //If a controller is connected during run
         if((event.type == SDL_CONTROLLERDEVICEADDED) && (!gamepadConnected)){
             int joysticks = SDL_NumJoysticks();
             for(int joystickIndex = 0; joystickIndex < joysticks; ++joystickIndex){
@@ -70,10 +72,30 @@ int main(int argc, char *argv[]){
                 gamepadConnected = true;
             }
         }
+        //If controller is disconnected during run
         if(event.type == SDL_CONTROLLERDEVICEREMOVED){
             SDL_GameControllerClose(controller);
             gamepadConnected = false;
-            cout << "Hit right here\n";
+        }
+        
+        //Keyboad input (for testing)
+        if(event.type == SDL_KEYDOWN){
+            switch(event.key.keysym.sym){
+                case SDLK_RIGHT:
+                    player.x++;
+                    break;
+                case SDLK_LEFT:
+                    player.x--;
+                    break;
+            }
+        }
+        
+        //Check to keep player on screen
+        if(player.x < 0){
+            player.x = 0;
+        }
+        if(player.x > 600){
+            player.x = 600;
         }
         
         //Updating surfaces and rendering
