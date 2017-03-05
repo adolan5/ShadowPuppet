@@ -16,6 +16,8 @@ int main(int argc, char *argv[]){
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_GameController *controller;
+    //Controller deadzone
+    const int deadzone = 8000;
     //Pointers to our textures
     SDL_Texture *background;
     SDL_Texture *playerTexture;
@@ -101,6 +103,18 @@ int main(int argc, char *argv[]){
                 case SDLK_LEFT:
                     player.x--;
                     break;
+            }
+        }
+        //Controller input
+        //TODO: Fix this up
+        if(event.type == SDL_CONTROLLERAXISMOTION){
+            if(event.caxis.axis == SDL_CONTROLLER_AXIS_LEFTX){
+                if(event.caxis.value > deadzone){
+                    player.x++;
+                }
+                if(event.caxis.value < -deadzone){
+                    player.x--;
+                }
             }
         }
         
