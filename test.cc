@@ -34,12 +34,25 @@ int main(int argc, char *argv[]){
     if(SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_OPENGL, &window, &renderer)){
         cerr << argv[0] << ": ";
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create window and renderer! Error: %s\n", SDL_GetError());
+        SDL_Quit();
         return 1;
     }
     //Loading the background image as a surface
     background = loadTexture(string("./images/wht-marble.bmp"), renderer);
+    if(background == NULL){
+        cerr << argv[0] << ": ";
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create background texture from passed string! Error: %s\n", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
     //Loading player surface, creating texture
     playerTexture = loadTexture(string("./images/Smiley.bmp"), renderer);
+    if(playerTexture == NULL){
+        cerr << argv[0] << ": ";
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create player texture from passed string! Error: %s\n", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
     
     //Opening the gamepad if one is connected
     bool gamepadConnected = false;
@@ -76,6 +89,7 @@ int main(int argc, char *argv[]){
         if(event.type == SDL_CONTROLLERDEVICEREMOVED){
             SDL_GameControllerClose(controller);
             gamepadConnected = false;
+            cout << argv[0] << ": Detected that gamepad was disconnected\n";
         }
         
         //Keyboad input (for testing)
