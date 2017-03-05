@@ -40,7 +40,7 @@ int main(int argc, char *argv[]){
         return 1;
     }
     //Loading the background image as a surface
-    background = loadTexture(string("./images/TestBackground8.bmp"), renderer);
+    background = loadTexture(string("./images/wht-marble24Bit.bmp"), renderer);
     if(background == NULL){
         cerr << argv[0] << ": ";
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create background texture from passed string! Error: %s\n", SDL_GetError());
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]){
         return 1;
     }
     //Loading player surface, creating texture
-    playerTexture = loadTexture(string("./images/Smiley.bmp"), renderer);
+    playerTexture = loadTexture(string("./images/Smiley24Bit.bmp"), renderer);
     if(playerTexture == NULL){
         cerr << argv[0] << ": ";
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create player texture from passed string! Error: %s\n", SDL_GetError());
