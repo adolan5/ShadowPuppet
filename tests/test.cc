@@ -4,71 +4,44 @@
 
 using namespace std;
 
-//Function definitions
+//Function declarations
 SDL_Texture *loadTexture(string image, SDL_Renderer *renderer);
+int initialize();
+void quitGame();
+
+//Private variables
+//Pointers for our window and renderer, and controller
+static SDL_Window *window;
+static SDL_Renderer *renderer;
+static SDL_GameController *controller;
+//Controller deadzone
+static const int deadzone = 8000;
+//Pointers to our textures
+static SDL_Texture *background;
+static SDL_Texture *playerTexture;
+//An event to be polled
+static SDL_Event event;
+//Bool's for if the game is running and if a controller has been connected
+static bool gameRunning = true;
+static bool gamepadConnected = false;
+//Player rect
+static SDL_Rect player;
+//X velocity for our player
+static const int xVel = 1;
 
 int main(int argc, char *argv[]){
-    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0){
-        SDL_Log("Unable to initialize SDL: %s\n", SDL_GetError());
-    }
-    
-    //Pointers for our window and renderer, and controller
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    SDL_GameController *controller;
-    //Controller deadzone
-    const int deadzone = 8000;
-    //Pointers to our textures
-    SDL_Texture *background;
-    SDL_Texture *playerTexture;
-    //An event to be polled
-    SDL_Event event;
-    bool gameRunning = true;
-    
-    //Player rect
-    SDL_Rect player;
-    player.x = 0;
-    player.y = 440;
-    player.w = 40;
-    player.h = 40;
-    
-    //Creating a window
-    if(SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_OPENGL, &window, &renderer)){
-        cerr << argv[0] << ": ";
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create window and renderer! Error: %s\n", SDL_GetError());
-        SDL_Quit();
+    if(initialize() == 1){
+        cerr << argv[0] << ": Unable to initialize, exiting";
         return 1;
     }
-    //Loading the background image as a surface
-    background = loadTexture(string("./images/wht-marble24Bit.bmp"), renderer);
-    if(background == NULL){
-        cerr << argv[0] << ": ";
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create background texture from passed string! Error: %s\n", SDL_GetError());
-        SDL_Quit();
-        return 1;
-    }
-    //Loading player surface, creating texture
-    playerTexture = loadTexture(string("./images/Smiley24Bit.bmp"), renderer);
-    if(playerTexture == NULL){
-        cerr << argv[0] << ": ";
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create player texture from passed string! Error: %s\n", SDL_GetError());
-        SDL_Quit();
-        return 1;
-    }
-    
-    //Opening the gamepad if one is connected
-    bool gamepadConnected = false;
-    int joysticks = SDL_NumJoysticks();
-    for(int joystickIndex = 0; joystickIndex < joysticks; ++joystickIndex){
-        if(!SDL_IsGameController(joystickIndex)){
-            continue;
-        }
-        cout << "Joystick at index: " << joystickIndex << " is a valid game controller\n";
-        controller = SDL_GameControllerOpen(joystickIndex);
-        gamepadConnected = true;
-    }
-    
+    //Main game loop
     while(gameRunning){
+        //TODO: Keep/fix delay for smoothness?
+        /*
+        SDL_Delay(30); <--Commented out because of its unusual response time while a controller is connected
+        I believe this bug comes from the OS not allowing such small slices of time to be handed out
+        */
+        
         //Event Handling
         SDL_PollEvent(&event);
         //In case of quit
@@ -98,23 +71,23 @@ int main(int argc, char *argv[]){
         if(event.type == SDL_KEYDOWN){
             switch(event.key.keysym.sym){
                 case SDLK_RIGHT:
-                    player.x++;
+                    player.x += xVel;
                     break;
                 case SDLK_LEFT:
-                    player.x--;
+                    player.x -= xVel;
+                    break;
+                case SDLK_ESCAPE:
+                    gameRunning = false;
                     break;
             }
         }
         //Controller input
-        //TODO: Fix this up
-        if(event.type == SDL_CONTROLLERAXISMOTION){
-            if(event.caxis.axis == SDL_CONTROLLER_AXIS_LEFTX){
-                if(event.caxis.value > deadzone){
-                    player.x++;
-                }
-                if(event.caxis.value < -deadzone){
-                    player.x--;
-                }
+        if(gamepadConnected){
+            if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) > deadzone){
+                player.x += xVel;
+            }
+            if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) < -deadzone){
+                player.x -= xVel;
             }
         }
         
@@ -135,6 +108,57 @@ int main(int argc, char *argv[]){
         
         SDL_RenderPresent(renderer);
     }
+    quitGame();
+    return 0;
+}
+
+//Function that initializes SDL and other libraries
+int initialize(){
+    //Starting SDL
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0){
+        SDL_Log("Unable to initialize SDL: %s\n", SDL_GetError());
+    }
+    //Setting player initial position
+    player.x = 0;
+    player.y = 440;
+    player.w = 40;
+    player.h = 40;
+    //Creating a window
+    if(SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_OPENGL, &window, &renderer)){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create window and renderer! Error: %s\n", SDL_GetError());
+        quitGame();
+        return 1;
+    }
+    //Loading the background image as a surface
+    background = loadTexture(string("../images/wht-marble24Bit.bmp"), renderer);
+    if(background == NULL){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create background texture from passed string! Error: %s\n", SDL_GetError());
+        quitGame();
+        return 1;
+    }
+    //Loading player surface, creating texture
+    playerTexture = loadTexture(string("../images/Smiley24Bit.bmp"), renderer);
+    if(playerTexture == NULL){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create player texture from passed string! Error: %s\n", SDL_GetError());
+        quitGame();
+        return 1;
+    }
+    
+    //Opening the gamepad if one is connected
+    int joysticks = SDL_NumJoysticks();
+    for(int joystickIndex = 0; joystickIndex < joysticks; ++joystickIndex){
+        if(!SDL_IsGameController(joystickIndex)){
+            continue;
+        }
+        cout << "Joystick at index: " << joystickIndex << " is a valid game controller\n";
+        controller = SDL_GameControllerOpen(joystickIndex);
+        gamepadConnected = true;
+    }
+    return 0;
+}
+
+//Function to shut down all libraries and exit
+void quitGame(){
     SDL_DestroyTexture(background);
     SDL_DestroyTexture(playerTexture);
     SDL_DestroyWindow(window);
@@ -143,7 +167,6 @@ int main(int argc, char *argv[]){
         SDL_GameControllerClose(controller);
     }
     SDL_Quit();
-    return 0;
 }
 
 /*
