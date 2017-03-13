@@ -1,3 +1,0 @@
-This is a test file for proof of concept
-
-Second edit on POC.txt
