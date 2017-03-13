@@ -1,5 +1,8 @@
 #include <iostream>
 #include "SDL.h"
+#include <GL/glew.h>
+#include <GL/glu.h>
+#include <SDL_opengl.h>
 #include <string>
 
 using namespace std;
@@ -14,6 +17,8 @@ void quitGame();
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_GameController *controller;
+//OpenGL context
+static SDL_GLContext gameContext;
 //Controller deadzone
 static const int deadzone = 8000;
 //Pointers to our textures
@@ -118,6 +123,11 @@ int initialize(){
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0){
         SDL_Log("Unable to initialize SDL: %s\n", SDL_GetError());
     }
+    //TODO: Initializing OpenGL/GLEW
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    
     //Setting player initial position
     player.x = 0;
     player.y = 440;
