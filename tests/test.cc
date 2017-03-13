@@ -11,19 +11,20 @@ using namespace std;
 SDL_Texture *loadTexture(string image, SDL_Renderer *renderer);
 int initialize();
 void quitGame();
+bool initializeGL();
 
 //Private variables
 //Pointers for our window and renderer, and controller
 static SDL_Window *window;
-static SDL_Renderer *renderer;
 static SDL_GameController *controller;
-//OpenGL context
+//OpenGL context and other variables
 static SDL_GLContext gameContext;
+static GLuint programID = 0;
+static GLint vertex = -1;
+static GLuint vbo = 0;
+static GLuint ibo = 0;
 //Controller deadzone
 static const int deadzone = 8000;
-//Pointers to our textures
-static SDL_Texture *background;
-static SDL_Texture *playerTexture;
 //An event to be polled
 static SDL_Event event;
 //Bool's for if the game is running and if a controller has been connected
@@ -36,7 +37,8 @@ static const int xVel = 1;
 
 int main(int argc, char *argv[]){
     if(initialize() == 1){
-        cerr << argv[0] << ": Unable to initialize, exiting";
+        cerr << argv[0] << ": Unable to initialize, exiting\n";
+        quitGame();
         return 1;
     }
     //Main game loop
@@ -103,15 +105,6 @@ int main(int argc, char *argv[]){
         if(player.x > 600){
             player.x = 600;
         }
-        
-        //Updating surfaces and rendering
-        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
-        SDL_RenderClear(renderer);
-        SDL_RenderCopy(renderer, background, NULL, NULL);
-        //Add the player
-        SDL_RenderCopy(renderer, playerTexture, NULL, &player);
-        
-        SDL_RenderPresent(renderer);
     }
     quitGame();
     return 0;
@@ -122,37 +115,44 @@ int initialize(){
     //Starting SDL
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0){
         SDL_Log("Unable to initialize SDL: %s\n", SDL_GetError());
+        return 1;
     }
-    //TODO: Initializing OpenGL/GLEW
+    
+    //Creating a window
+    window = SDL_CreateWindow("ShadowPuppet", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
+    if(window == NULL){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create window! Error: %s\n", SDL_GetError());
+        return 1;
+    }
+    
+    //TODO: Initializing OpenGL
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    //Create OpenGL context
+    gameContext = SDL_GL_CreateContext(window);
+    if(gameContext == NULL){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create OpenGL context. Error: %s", SDL_GetError());
+        return 1;
+    }
+    glewExperimental = GL_TRUE;
+    
+    //Use vSync
+    if(SDL_GL_SetSwapInterval(1) < 0){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to set vSync. Error: %s", SDL_GetError());
+        return 1;
+    }
+    //Initialize OpenGL
+    if(!initializeGL()){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to initialize OpenGL! Error: %s", SDL_GetError());
+        return 1;
+    }
     
     //Setting player initial position
     player.x = 0;
     player.y = 440;
     player.w = 40;
     player.h = 40;
-    //Creating a window
-    if(SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_OPENGL, &window, &renderer)){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create window and renderer! Error: %s\n", SDL_GetError());
-        quitGame();
-        return 1;
-    }
-    //Loading the background image as a surface
-    background = loadTexture(string("../images/wht-marble24Bit.bmp"), renderer);
-    if(background == NULL){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create background texture from passed string! Error: %s\n", SDL_GetError());
-        quitGame();
-        return 1;
-    }
-    //Loading player surface, creating texture
-    playerTexture = loadTexture(string("../images/Smiley24Bit.bmp"), renderer);
-    if(playerTexture == NULL){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create player texture from passed string! Error: %s\n", SDL_GetError());
-        quitGame();
-        return 1;
-    }
     
     //Opening the gamepad if one is connected
     int joysticks = SDL_NumJoysticks();
@@ -167,12 +167,22 @@ int initialize(){
     return 0;
 }
 
+bool initializeGL(){
+    GLenum error = GL_NO_ERROR;
+    glMatrixMode(GL_PROJECTION);
+    //Replaces current matrix with identity matrix
+    glLoadIdentity();
+    error = glGetError();
+    if(error != GL_NO_ERROR){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL. Error: %s\n", gluErrorString(error));
+        return false;
+    }
+    return true;
+}
+
 //Function to shut down all libraries and exit
 void quitGame(){
-    SDL_DestroyTexture(background);
-    SDL_DestroyTexture(playerTexture);
     SDL_DestroyWindow(window);
-    SDL_DestroyRenderer(renderer);
     if(gamepadConnected){
         SDL_GameControllerClose(controller);
     }
@@ -182,6 +192,7 @@ void quitGame(){
 /*
 Function that takes an image path, creates a surface from the image, and then a texture from the surface
 Params: the path to the image we're using as a c++ string, pointer to the renderer to be used
+TODO: Remove if no longer used
 */
 SDL_Texture *loadTexture(string image, SDL_Renderer *renderer){
         SDL_Surface *surface = SDL_LoadBMP(image.data());
