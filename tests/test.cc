@@ -4,16 +4,21 @@
 #include <GL/glu.h>
 #include <SDL_opengl.h>
 #include <string>
+#include <IL/il.h>
 
 using namespace std;
 
 //Function declarations
-SDL_Texture *loadTexture(string image, SDL_Renderer *renderer);
+// TODO: Remove this if not needed SDL_Texture *loadTexture(string image, SDL_Renderer *renderer);
 int initialize();
 void quitGame();
 bool initializeGL();
+bool loadTexture(string image);
 
 //Private variables
+//Window dimensions
+static const int WINDOW_HEIGHT = 480;
+static const int WINDOW_WIDTH = 640;
 //Pointers for our window and renderer, and controller
 static SDL_Window *window;
 static SDL_GameController *controller;
@@ -115,7 +120,7 @@ int initialize(){
     }
     
     //Creating a window
-    window = SDL_CreateWindow("ShadowPuppet", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
+    window = SDL_CreateWindow("ShadowPuppet", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
     if(window == NULL){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create window! Error: %s\n", SDL_GetError());
         return 1;
@@ -131,11 +136,6 @@ int initialize(){
         return 1;
     }
     
-    //Use vSync
-    if(SDL_GL_SetSwapInterval(1) < 0){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to set vSync. Error: %s", SDL_GetError());
-        return 1;
-    }
     //Initialize OpenGL
     if(!initializeGL()){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to initialize OpenGL! Error: %s", SDL_GetError());
@@ -161,12 +161,15 @@ int initialize(){
     return 0;
 }
 
+//Function to start up OpenGL via OpenGL code
 bool initializeGL(){
     GLenum error = GL_NO_ERROR;
     //Initialize projection matrix
     glMatrixMode(GL_PROJECTION);
     //Replaces current matrix with identity matrix
     glLoadIdentity();
+    //Setting up the orthographic coordinate system
+    glOrtho(0.0, WINDOW_WIDTH, WINDOW_HEIGHT, 0.0, 1.0, -1.0);
     error = glGetError();
     if(error != GL_NO_ERROR){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL. Error: %s\n", gluErrorString(error));
@@ -192,6 +195,7 @@ bool initializeGL(){
 
 //Function to shut down all libraries and exit
 void quitGame(){
+    SDL_GL_DeleteContext(gameContext);
     SDL_DestroyWindow(window);
     if(gamepadConnected){
         SDL_GameControllerClose(controller);
@@ -199,22 +203,38 @@ void quitGame(){
     SDL_Quit();
 }
 
+//TODO: Function to load an OpenGL texture from an image via DevIL
+bool loadTexture(string image){
+    ILuint imgID = 0;
+    ilGenImages(1, &imgID);
+    ilBindImage(imgID);
+    //Attempting to load the passed image
+    ILboolean success = ilLoadImage(image.data());
+    if(success == IL_TRUE){
+        success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+        if(success == IL_TRUE){
+            cout << "Continue from here, line 216\n";
+        }
+    }
+    return true;
+}
+
 /*
 Function that takes an image path, creates a surface from the image, and then a texture from the surface
 Params: the path to the image we're using as a c++ string, pointer to the renderer to be used
 TODO: Remove if no longer used
 */
-SDL_Texture *loadTexture(string image, SDL_Renderer *renderer){
-        SDL_Surface *surface = SDL_LoadBMP(image.data());
-    if(!surface){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load surface from bmp: %s Error: %s\n", image.data(), SDL_GetError());
-        return NULL;
-    }
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    if(!texture){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture from surface for image: %s Error: %s\n", image.data(), SDL_GetError());
-        return NULL;
-    }
-    SDL_FreeSurface(surface);
-    return texture;
-}
+// SDL_Texture *loadTexture(string image, SDL_Renderer *renderer){
+//         SDL_Surface *surface = SDL_LoadBMP(image.data());
+//     if(!surface){
+//         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load surface from bmp: %s Error: %s\n", image.data(), SDL_GetError());
+//         return NULL;
+//     }
+//     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+//     if(!texture){
+//         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture from surface for image: %s Error: %s\n", image.data(), SDL_GetError());
+//         return NULL;
+//     }
+//     SDL_FreeSurface(surface);
+//     return texture;
+// }
