@@ -4,16 +4,15 @@
 #include <GL/glu.h>
 #include <SDL_opengl.h>
 #include <string>
-#include <IL/il.h>
 
 using namespace std;
 
 //Function declarations
-// TODO: Remove this if not needed SDL_Texture *loadTexture(string image, SDL_Renderer *renderer);
+bool loadTexture(string image);
 int initialize();
 void quitGame();
 bool initializeGL();
-bool loadTexture(string image);
+void glRender();
 
 //Private variables
 //Window dimensions
@@ -24,6 +23,7 @@ static SDL_Window *window;
 static SDL_GameController *controller;
 //OpenGL context and other variables
 static SDL_GLContext gameContext;
+static GLuint textureID = 0;
 //Controller deadzone
 static const int deadzone = 8000;
 //An event to be polled
@@ -106,6 +106,10 @@ int main(int argc, char *argv[]){
         if(player.x > 600){
             player.x = 600;
         }
+        
+        //Rendering to screen
+        glRender();
+        SDL_GL_SwapWindow(window);
     }
     quitGame();
     return 0;
@@ -119,6 +123,10 @@ int initialize(){
         return 1;
     }
     
+    //Initializing OpenGL
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    
     //Creating a window
     window = SDL_CreateWindow("ShadowPuppet", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
     if(window == NULL){
@@ -126,19 +134,22 @@ int initialize(){
         return 1;
     }
     
-    //TODO: Initializing OpenGL
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     //Create OpenGL context
     gameContext = SDL_GL_CreateContext(window);
     if(gameContext == NULL){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create OpenGL context. Error: %s", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create OpenGL context. Error: %s\n", SDL_GetError());
         return 1;
     }
     
     //Initialize OpenGL
     if(!initializeGL()){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to initialize OpenGL! Error: %s", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to initialize OpenGL! Error: %s\n", SDL_GetError());
+        return 1;
+    }
+    
+    //TODO: Loading textures
+    if(!loadTexture(string("../images/wht-marble.bmp"))){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load texture from string! Error: %s\n", SDL_GetError());
         return 1;
     }
     
@@ -168,8 +179,6 @@ bool initializeGL(){
     glMatrixMode(GL_PROJECTION);
     //Replaces current matrix with identity matrix
     glLoadIdentity();
-    //Setting up the orthographic coordinate system
-    glOrtho(0.0, WINDOW_WIDTH, WINDOW_HEIGHT, 0.0, 1.0, -1.0);
     error = glGetError();
     if(error != GL_NO_ERROR){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL. Error: %s\n", gluErrorString(error));
@@ -190,6 +199,8 @@ bool initializeGL(){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL. Error: %s\n", gluErrorString(error));
         return false;
     }
+    //Setting up the orthographic coordinate system
+    glOrtho(0.0, WINDOW_WIDTH, WINDOW_HEIGHT, 0.0, 1.0, -1.0);
     return true;
 }
 
@@ -203,38 +214,29 @@ void quitGame(){
     SDL_Quit();
 }
 
-//TODO: Function to load an OpenGL texture from an image via DevIL
+/*
+Function that takes an image path, creates a surface from the image, and then a texture from the surface via OpenGL
+Params: the path to the image we're using as a c++ string
+*/
 bool loadTexture(string image){
-    ILuint imgID = 0;
-    ilGenImages(1, &imgID);
-    ilBindImage(imgID);
-    //Attempting to load the passed image
-    ILboolean success = ilLoadImage(image.data());
-    if(success == IL_TRUE){
-        success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-        if(success == IL_TRUE){
-            cout << "Continue from here, line 216\n";
-        }
+    //Loading SDL surface from bmp TODO: Implement SDL_Image for this process
+    SDL_Surface *surface = SDL_LoadBMP(image.data());
+    if(!surface){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load surface from bmp: %s Error: %s\n", image.data(), SDL_GetError());
+        return false;
     }
+    //TODO: Add OpenGL elements
+    //Freeing the surface, since we don't need it anymore
+    SDL_FreeSurface(surface);
     return true;
 }
 
-/*
-Function that takes an image path, creates a surface from the image, and then a texture from the surface
-Params: the path to the image we're using as a c++ string, pointer to the renderer to be used
-TODO: Remove if no longer used
-*/
-// SDL_Texture *loadTexture(string image, SDL_Renderer *renderer){
-//         SDL_Surface *surface = SDL_LoadBMP(image.data());
-//     if(!surface){
-//         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load surface from bmp: %s Error: %s\n", image.data(), SDL_GetError());
-//         return NULL;
-//     }
-//     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-//     if(!texture){
-//         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture from surface for image: %s Error: %s\n", image.data(), SDL_GetError());
-//         return NULL;
-//     }
-//     SDL_FreeSurface(surface);
-//     return texture;
-// }
+void glRender(){
+    glClear(GL_COLOR_BUFFER_BIT);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0, 0); glVertex2f(0, 0);
+        glTexCoord2f(1, 0); glVertex2f(WINDOW_WIDTH, 0);
+        glTexCoord2f(1, 1); glVertex2f(WINDOW_WIDTH, WINDOW_HEIGHT);
+        glTexCoord2f(0, 1); glVertex2f(0, WINDOW_HEIGHT);
+    glEnd();
+}
