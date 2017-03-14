@@ -1,5 +1,5 @@
 CC = g++
-C_Flags = -L /usr/lib/x86_64-linux-gnu -Wfatal-errors -Wall -lGL -lGLU -lGLEW `sdl2-config --cflags` `sdl2-config --libs`
+C_Flags = -Wfatal-errors -Wall -lGL -lGLU -lGLEW `sdl2-config --cflags` `sdl2-config --libs`
 EXE = test
 C_SRCS = test.cc
 

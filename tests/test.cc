@@ -19,10 +19,6 @@ static SDL_Window *window;
 static SDL_GameController *controller;
 //OpenGL context and other variables
 static SDL_GLContext gameContext;
-static GLuint programID = 0;
-static GLint vertex = -1;
-static GLuint vbo = 0;
-static GLuint ibo = 0;
 //Controller deadzone
 static const int deadzone = 8000;
 //An event to be polled
@@ -126,16 +122,14 @@ int initialize(){
     }
     
     //TODO: Initializing OpenGL
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     //Create OpenGL context
     gameContext = SDL_GL_CreateContext(window);
     if(gameContext == NULL){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create OpenGL context. Error: %s", SDL_GetError());
         return 1;
     }
-    glewExperimental = GL_TRUE;
     
     //Use vSync
     if(SDL_GL_SetSwapInterval(1) < 0){
@@ -169,9 +163,25 @@ int initialize(){
 
 bool initializeGL(){
     GLenum error = GL_NO_ERROR;
+    //Initialize projection matrix
     glMatrixMode(GL_PROJECTION);
     //Replaces current matrix with identity matrix
     glLoadIdentity();
+    error = glGetError();
+    if(error != GL_NO_ERROR){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL. Error: %s\n", gluErrorString(error));
+        return false;
+    }
+    //Initialize Modelview matrix
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    error = glGetError();
+    if(error != GL_NO_ERROR){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL. Error: %s\n", gluErrorString(error));
+        return false;
+    }
+    //Initialize clear color
+    glClearColor(0.f, 0.f, 0.f, 1.f);
     error = glGetError();
     if(error != GL_NO_ERROR){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL. Error: %s\n", gluErrorString(error));
