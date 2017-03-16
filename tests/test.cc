@@ -1,7 +1,7 @@
 #include <iostream>
 #include "SDL.h"
-#include <GL/glew.h>
-#include <GL/glu.h>
+//#include <GL/glew.h> TODO: Deprecate glew?
+#include <GL/glu.h>     //<--- Only being used for gluErrorString, remove?
 #include <SDL_opengl.h>
 #include <string>
 
@@ -9,13 +9,13 @@ using namespace std;
 
 //Function declarations
 void openGamepad();
-bool loadTexture(string image);
+bool loadTexture(string image, GLuint &textureID);
 int initialize();
 void quitGame();
 bool initializeGL();
 void glRender();
 
-//Private variables
+/*          Private variables       */
 //Window dimensions
 static const int WINDOW_HEIGHT = 480;
 static const int WINDOW_WIDTH = 640;
@@ -24,7 +24,8 @@ static SDL_Window *window;
 static SDL_GameController *controller;
 //OpenGL context and other variables
 static SDL_GLContext gameContext;
-static GLuint textureID = 0;
+static GLuint backgroundTexture = 0;
+static GLuint playerTexture = 0;
 //Controller deadzone
 static const int deadzone = 8000;
 //An event to be polled
@@ -35,7 +36,9 @@ static bool gamepadConnected = false;
 //Player rect
 static SDL_Rect player;
 //X velocity for our player
-static const int xVel = 1;
+static const int xVel = 5;
+//Bool for if player has even moved (save a screen swap)
+static bool playerMoved = true;
 
 //TODO: Clean up main
 int main(int argc, char *argv[]){
@@ -59,7 +62,7 @@ int main(int argc, char *argv[]){
         //TODO: Keep/fix delay for smoothness?
         /*
         SDL_Delay(30); <--Commented out because of its unusual response time while a controller is connected
-        I believe this bug comes from the OS not allowing such small slices of time to be handed out
+                        I believe this bug comes from the OS not allowing such small slices of time to be handed out
         */
         
         //Event Handling
@@ -84,9 +87,11 @@ int main(int argc, char *argv[]){
             switch(event.key.keysym.sym){
                 case SDLK_RIGHT:
                     player.x += xVel;
+                    playerMoved = true;
                     break;
                 case SDLK_LEFT:
                     player.x -= xVel;
+                    playerMoved = true;
                     break;
                 case SDLK_ESCAPE:
                     gameRunning = false;
@@ -97,23 +102,30 @@ int main(int argc, char *argv[]){
         if(gamepadConnected){
             if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) > deadzone){
                 player.x += xVel;
+                playerMoved = true;
             }
             if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) < -deadzone){
                 player.x -= xVel;
+                playerMoved = true;
             }
         }
         
         //Check to keep player on screen
         if(player.x < 0){
             player.x = 0;
+            playerMoved = false;
         }
         if(player.x > 600){
             player.x = 600;
+            playerMoved = false;
         }
         
         //Rendering to screen
-        glRender();
-        SDL_GL_SwapWindow(window);
+        if(playerMoved){
+            glRender();
+            SDL_GL_SwapWindow(window);
+            playerMoved = false;
+        }
     }
     quitGame();
     return 0;
@@ -191,11 +203,23 @@ bool initializeGL(){
     }
     //Setting up the orthographic coordinate system
     glOrtho(0.0, WINDOW_WIDTH, WINDOW_HEIGHT, 0.0, 1.0, -1.0);
+    //Loading the textures we're using
+    if(!loadTexture(string("../images/wht-marble24Bit.bmp"), backgroundTexture)){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load texture from string! Error: %s\n", SDL_GetError());
+        return false;
+    }
+    if(!loadTexture(string("../images/Smiley24Bit.bmp"), playerTexture)){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load texture from string! Error: %s\n", SDL_GetError());
+        return false;
+    }
     return true;
 }
 
 //Function to shut down all libraries and exit
 void quitGame(){
+    //Delete textures now that we're done with them (and avoiding a very bad memory leak!)
+    glDeleteTextures(1, &backgroundTexture);
+    glDeleteTextures(1, &playerTexture);
     SDL_GL_DeleteContext(gameContext);
     SDL_DestroyWindow(window);
     if(gamepadConnected){
@@ -208,14 +232,13 @@ void quitGame(){
 Function that takes an image path, creates a surface from the image, and then a texture from the surface via OpenGL
 Params: the path to the image we're using as a c++ string
 */
-bool loadTexture(string image){
+bool loadTexture(string image, GLuint &textureID){
     //Loading SDL surface from bmp TODO: Implement SDL_Image for this process
     SDL_Surface *surface = SDL_LoadBMP(image.data());
     if(!surface){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load surface from bmp: %s Error: %s\n", image.data(), SDL_GetError());
         return false;
     }
-    //TODO: Also render player texture
     glGenTextures(1, &textureID);
     //Binding to the texture
     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -223,8 +246,8 @@ bool loadTexture(string image){
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     //Actually creating the texture
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
-    //Freeing the surface, since we don't need it anymore
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
+    //Freeing the SDL surface, since we don't need it anymore
     SDL_FreeSurface(surface);
     return true;
 }
@@ -237,22 +260,24 @@ void glRender(){
     glClear(GL_COLOR_BUFFER_BIT);
     //Need this to be enabled for this portion
     glEnable(GL_TEXTURE_2D);
-    //TODO: Also load player texture
-    if(!loadTexture(string("../images/wht-marble24Bit.bmp"))){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load texture from string! Error: %s\n", SDL_GetError());
-        return;
-    }
-    //Render texture onto target
+    //Render background texture onto target
+    glBindTexture(GL_TEXTURE_2D, backgroundTexture);
     glBegin(GL_QUADS);
         glTexCoord2f(0, 0); glVertex2f(0, 0);                           //Top left
         glTexCoord2f(1, 0); glVertex2f(WINDOW_WIDTH, 0);                //Top right
         glTexCoord2f(1, 1); glVertex2f(WINDOW_WIDTH, WINDOW_HEIGHT);    //Bottom right
         glTexCoord2f(0, 1); glVertex2f(0, WINDOW_HEIGHT);               //Bottom left
     glEnd();
+    //Render player
+    glBindTexture(GL_TEXTURE_2D, playerTexture);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0,0); glVertex2f(player.x,player.y);
+        glTexCoord2f(1,0); glVertex2f((player.x + 40),player.y);
+        glTexCoord2f(1,1); glVertex2f((player.x + 40),(player.y + 40));
+        glTexCoord2f(0,1); glVertex2f(player.x,(player.y + 40));
+    glEnd();
     //Done with rendering, disable this flag
     glDisable(GL_TEXTURE_2D);
-    //Delete texture now that we're done with it (and avoiding a very bad memory leak!)
-    glDeleteTextures(1, &textureID);
 }
 
 //Function to open a gamepad
