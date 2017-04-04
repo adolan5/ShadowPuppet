@@ -1,7 +1,5 @@
 #include <iostream>
 #include "SDL.h"
-//#include <GL/glew.h> TODO: Deprecate glew?
-#include <GL/glu.h>     //<--- Only being used for gluErrorString, remove?
 #include <SDL_opengl.h>
 #include <string>
 
@@ -183,7 +181,7 @@ bool initializeGL(){
     glLoadIdentity();
     error = glGetError();
     if(error != GL_NO_ERROR){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL. Error: %s\n", gluErrorString(error));
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL.\n");
         return false;
     }
     //Initialize Modelview matrix
@@ -191,14 +189,14 @@ bool initializeGL(){
     glLoadIdentity();
     error = glGetError();
     if(error != GL_NO_ERROR){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL. Error: %s\n", gluErrorString(error));
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL.\n");
         return false;
     }
     //Initialize clear color
     glClearColor(0.f, 0.f, 0.f, 1.f);
     error = glGetError();
     if(error != GL_NO_ERROR){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL. Error: %s\n", gluErrorString(error));
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL.\n");
         return false;
     }
     //Setting up the orthographic coordinate system

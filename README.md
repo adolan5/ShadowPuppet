@@ -5,5 +5,3 @@ Third-party prerequisites:
 -SDL2
 -SDL-image (will implement in future)
 -OpenGL (using v2.1)
--freeglut3
--GLEW (Still deciding)
