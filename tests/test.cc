@@ -1,7 +1,8 @@
 #include <iostream>
+#include <string>
 #include "SDL.h"
 #include <SDL_opengl.h>
-#include <string>
+#include <SDL/SDL_image.h>
 
 using namespace std;
 
