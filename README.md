@@ -3,5 +3,5 @@ ShadowPuppet is an asymmetric platformer in which one player controls a characte
 
 Third-party prerequisites:
 -SDL2
--SDL-image (will implement in future)
+-SDL2-image (Note: Be sure to use SDL2-image as opposed to SDL-image!)
 -OpenGL (using v2.1)

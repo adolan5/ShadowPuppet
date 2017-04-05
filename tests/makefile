@@ -1,6 +1,6 @@
 CC = g++
 C_Flags = -Wfatal-errors -Wall `sdl2-config --cflags` `sdl2-config --libs`
-LINKER_FLAGS = -lGL -lSDL_image
+LINKER_FLAGS = -lGL -lSDL2_image
 EXE = test
 C_SRCS = test.cc
 

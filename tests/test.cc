@@ -2,7 +2,7 @@
 #include <string>
 #include "SDL.h"
 #include <SDL_opengl.h>
-#include <SDL/SDL_image.h>
+#include <SDL_image.h>
 
 using namespace std;
 
@@ -50,19 +50,10 @@ int main(int argc, char *argv[]){
     
     //Main game loop
     while(gameRunning){
-        
-/*                  Prevent program from running very long (fixing a memory leak from not dealloc-ing gl textures)  */
-
-//         if(time > 300){
-//             gameRunning = false;
-//         }
-//         time++;
-
         //TODO: Keep/fix delay for smoothness?
-        /*
-        SDL_Delay(30); <--Commented out because of its unusual response time while a controller is connected
-                        I believe this bug comes from the OS not allowing such small slices of time to be handed out
-        */
+
+        //SDL_Delay(30); //<--Commented out because of its unusual response time while a controller is connected
+        //                I believe this bug comes from the OS not allowing such small slices of time to be handed out
         
         //Event Handling
         SDL_PollEvent(&event);
@@ -97,6 +88,12 @@ int main(int argc, char *argv[]){
                     break;
             }
         }
+        //Controller buttons
+        if(event.type == SDL_CONTROLLERBUTTONDOWN){
+			if(event.cbutton.button == SDL_CONTROLLER_BUTTON_B){
+				gameRunning = false;
+			}
+		}
         //Controller input
         if(gamepadConnected){
             if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) > deadzone){
@@ -136,6 +133,13 @@ int initialize(){
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0){
         SDL_Log("Unable to initialize SDL: %s\n", SDL_GetError());
         return 1;
+    }
+    
+    //Initializing SDL_image
+    int image = IMG_Init(IMG_INIT_PNG);
+    if((image & IMG_INIT_PNG) != IMG_INIT_PNG){
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL_image! Error: %s\n", IMG_GetError());
+		return 1;
     }
     
     //Initializing OpenGL
@@ -202,12 +206,17 @@ bool initializeGL(){
     }
     //Setting up the orthographic coordinate system
     glOrtho(0.0, WINDOW_WIDTH, WINDOW_HEIGHT, 0.0, 1.0, -1.0);
+	
+    //These flags must be enabled for transparency of PNGs to work
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
     //Loading the textures we're using
-    if(!loadTexture(string("../images/wht-marble24Bit.bmp"), backgroundTexture)){
+    if(!loadTexture(string("../images/marblePng.png"), backgroundTexture)){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load texture from string! Error: %s\n", SDL_GetError());
         return false;
     }
-    if(!loadTexture(string("../images/Smiley24Bit.bmp"), playerTexture)){
+    if(!loadTexture(string("../images/cam.png"), playerTexture)){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load texture from string! Error: %s\n", SDL_GetError());
         return false;
     }
@@ -224,6 +233,7 @@ void quitGame(){
     if(gamepadConnected){
         SDL_GameControllerClose(controller);
     }
+    IMG_Quit();
     SDL_Quit();
 }
 
@@ -232,10 +242,10 @@ Function that takes an image path, creates a surface from the image, and then a 
 Params: the path to the image we're using as a c++ string
 */
 bool loadTexture(string image, GLuint &textureID){
-    //Loading SDL surface from bmp TODO: Implement SDL_Image for this process
-    SDL_Surface *surface = SDL_LoadBMP(image.data());
+    //Loading SDL surface from png via SDL_image
+    SDL_Surface *surface = IMG_Load(image.data());
     if(!surface){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load surface from bmp: %s Error: %s\n", image.data(), SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load surface from image: %s Error: %s\n", image.data(), SDL_GetError());
         return false;
     }
     glGenTextures(1, &textureID);
@@ -245,7 +255,7 @@ bool loadTexture(string image, GLuint &textureID){
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     //Actually creating the texture
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
     //Freeing the SDL surface, since we don't need it anymore
     SDL_FreeSurface(surface);
     return true;
@@ -275,7 +285,7 @@ void glRender(){
         glTexCoord2f(1,1); glVertex2f((player.x + 40),(player.y + 40));
         glTexCoord2f(0,1); glVertex2f(player.x,(player.y + 40));
     glEnd();
-    //Done with rendering, disable this flag
+    //Done with rendering, disable this flags
     glDisable(GL_TEXTURE_2D);
 }
 
