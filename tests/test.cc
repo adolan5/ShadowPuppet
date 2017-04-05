@@ -13,6 +13,7 @@ int initialize();
 void quitGame();
 bool initializeGL();
 void glRender();
+void playGame();
 
 /*          Private variables       */
 //Window dimensions
@@ -34,98 +35,12 @@ static bool gameRunning = true;
 static bool gamepadConnected = false;
 //Player rect
 static SDL_Rect player;
-//X velocity for our player
+//X and Y velocities for our player
 static const int xVel = 5;
+static int yVel = 0;
 //Bool for if player has even moved (save a screen swap)
 static bool playerMoved = true;
-
-//TODO: Clean up main
-int main(int argc, char *argv[]){
-    if(initialize() == 1){
-        cerr << argv[0] << ": Unable to initialize, exiting\n";
-        quitGame();
-        return 1;
-    }
-//     int time = 0; //Used for below if statement to keep loop from running infinitely, used when fixing memory leak (lockout situation)
-    
-    //Main game loop
-    while(gameRunning){
-        //TODO: Keep/fix delay for smoothness?
-
-        //SDL_Delay(30); //<--Commented out because of its unusual response time while a controller is connected
-        //                I believe this bug comes from the OS not allowing such small slices of time to be handed out
-        
-        //Event Handling
-        SDL_PollEvent(&event);
-        //In case of quit
-        if(event.type == SDL_QUIT){
-            gameRunning = false;
-        }
-        //If a controller is connected during run
-        if((event.type == SDL_CONTROLLERDEVICEADDED) && (!gamepadConnected)){
-            openGamepad();
-        }
-        //If controller is disconnected during run
-        if(event.type == SDL_CONTROLLERDEVICEREMOVED){
-            SDL_GameControllerClose(controller);
-            gamepadConnected = false;
-            cout << argv[0] << ": Detected that gamepad was disconnected\n";
-        }
-        
-        //Keyboad input (for testing)
-        if(event.type == SDL_KEYDOWN){
-            switch(event.key.keysym.sym){
-                case SDLK_RIGHT:
-                    player.x += xVel;
-                    playerMoved = true;
-                    break;
-                case SDLK_LEFT:
-                    player.x -= xVel;
-                    playerMoved = true;
-                    break;
-                case SDLK_ESCAPE:
-                    gameRunning = false;
-                    break;
-            }
-        }
-        //Controller buttons
-        if(event.type == SDL_CONTROLLERBUTTONDOWN){
-			if(event.cbutton.button == SDL_CONTROLLER_BUTTON_B){
-				gameRunning = false;
-			}
-		}
-        //Controller input
-        if(gamepadConnected){
-            if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) > deadzone){
-                player.x += xVel;
-                playerMoved = true;
-            }
-            if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) < -deadzone){
-                player.x -= xVel;
-                playerMoved = true;
-            }
-        }
-        
-        //Check to keep player on screen
-        if(player.x < 0){
-            player.x = 0;
-            playerMoved = false;
-        }
-        if(player.x > 600){
-            player.x = 600;
-            playerMoved = false;
-        }
-        
-        //Rendering to screen
-        if(playerMoved){
-            glRender();
-            SDL_GL_SwapWindow(window);
-            playerMoved = false;
-        }
-    }
-    quitGame();
-    return 0;
-}
+static bool jumping = false;
 
 //Function that initializes SDL and other libraries
 int initialize(){
@@ -142,7 +57,7 @@ int initialize(){
 		return 1;
     }
     
-    //Initializing OpenGL
+    //Setting some SDL_GL attributes
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     
@@ -297,8 +212,124 @@ void openGamepad(){
         if(!SDL_IsGameController(joystickIndex)){
             continue;
         }
-        cout << "Joystick at index: " << joystickIndex << " is a valid game controller\n";  //TODO: Remove this line at some point
         controller = SDL_GameControllerOpen(joystickIndex);
         gamepadConnected = true;
     }
+}
+
+//Main game function
+void playGame(){
+	//Main game loop
+    while(gameRunning){
+        //TODO: Keep/fix delay for smoothness?
+        //SDL_Delay(30); //<--Commented out because of its unusual response time while a controller is connected I believe this bug comes from mixing event polling and constant condition checking
+        
+        //Event Handling
+        SDL_PollEvent(&event);
+        //In case of quit
+        if(event.type == SDL_QUIT){
+            gameRunning = false;
+        }
+        //If a controller is connected during run
+        if((event.type == SDL_CONTROLLERDEVICEADDED) && (!gamepadConnected)){
+            openGamepad();
+        }
+        //If controller is disconnected during run
+        if(event.type == SDL_CONTROLLERDEVICEREMOVED){
+            SDL_GameControllerClose(controller);
+            gamepadConnected = false;
+        }
+        
+        //Keyboad input (for testing)
+        if(event.type == SDL_KEYDOWN){
+            switch(event.key.keysym.sym){
+                case SDLK_RIGHT:
+                    player.x += xVel;
+                    playerMoved = true;
+                    break;
+                case SDLK_LEFT:
+                    player.x -= xVel;
+                    playerMoved = true;
+                    break;
+                case SDLK_ESCAPE:
+                    gameRunning = false;
+                    break;
+				case SDLK_SPACE:
+					if(!jumping){
+						jumping = true;
+						yVel = 20;
+					}
+					break;
+            }
+        }
+        //Controller buttons
+        if(event.type == SDL_CONTROLLERBUTTONDOWN){
+			switch(event.cbutton.button){
+				case SDL_CONTROLLER_BUTTON_B:
+					gameRunning = false;
+					break;
+			}
+		}
+		
+        //Controller input
+        if(gamepadConnected){
+            if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) > deadzone){
+                player.x += xVel;
+                playerMoved = true;
+            }
+            if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) < -deadzone){
+                player.x -= xVel;
+                playerMoved = true;
+            }
+            if(SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_A) == 1){
+				if(!jumping){
+					jumping = true;
+					yVel = 20;
+				}
+			}
+        }
+        //Update player's y position, only happens when jumping (or falling)
+        if(jumping){
+			player.y -= yVel;
+			playerMoved = true;
+		}
+        
+        //TODO: Replace these if conditions with collision detection
+        if(player.x < 0){
+            player.x = 0;
+        }
+        if(player.x > 600){
+            player.x = 600;
+        }
+        if(player.y > 440){
+			player.y = 440;
+			yVel = 0;
+			jumping = false; //This line for if we've been falling
+		}
+		if(player.y < 0){
+			player.y = 0;
+			yVel = -10;
+		}
+		//Updating yVel if it isn't -10
+		if(jumping){
+			yVel--;
+		}
+        //Rendering to screen
+        if(playerMoved){
+            glRender();
+            SDL_GL_SwapWindow(window);
+            playerMoved = false;
+        }
+    }
+}
+//Main
+int main(int argc, char *argv[]){
+    if(initialize() == 1){
+        cerr << argv[0] << ": Unable to initialize, exiting\n";
+        quitGame();
+        return 1;
+    }
+    playGame();
+    quitGame();
+    return 0;
 }
