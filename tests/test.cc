@@ -14,6 +14,7 @@ void quitGame();
 bool initializeGL();
 void glRender();
 void playGame();
+void generatePlatforms(); //TODO: Integration with Kinect stuff!
 
 /*          Private variables       */
 //Window dimensions
@@ -26,6 +27,7 @@ static SDL_GameController *controller;
 static SDL_GLContext gameContext;
 static GLuint backgroundTexture = 0;
 static GLuint playerTexture = 0;
+static GLuint platformTexture = 0;
 //Controller deadzone
 static const int deadzone = 8000;
 //An event to be polled
@@ -41,6 +43,10 @@ static int yVel = 0;
 //Bool for if player has even moved (save a screen swap)
 static bool playerMoved = true;
 static bool jumping = false;
+//Platform rect (Will change to array of these at some point)
+static SDL_Rect platform;
+//Bool for if platforms are present
+static bool platformsPresent = false;
 
 //Function that initializes SDL and other libraries
 int initialize(){
@@ -86,6 +92,10 @@ int initialize(){
     player.y = 440;
     player.w = 40;
     player.h = 40;
+	
+	//Platform widths and heights will always be the same
+	platform.w = 100;
+	platform.h = 25;
     
     //Opening the gamepad if one is connected
     openGamepad();
@@ -135,6 +145,10 @@ bool initializeGL(){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load texture from string! Error: %s\n", SDL_GetError());
         return false;
     }
+    if(!loadTexture(string("../images/Platform.png"), platformTexture)){
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load platform texture from string! Error: %s\n", SDL_GetError());
+		return false;
+	}
     return true;
 }
 
@@ -196,10 +210,20 @@ void glRender(){
     glBindTexture(GL_TEXTURE_2D, playerTexture);
     glBegin(GL_QUADS);
         glTexCoord2f(0,0); glVertex2f(player.x,player.y);
-        glTexCoord2f(1,0); glVertex2f((player.x + 40),player.y);
-        glTexCoord2f(1,1); glVertex2f((player.x + 40),(player.y + 40));
-        glTexCoord2f(0,1); glVertex2f(player.x,(player.y + 40));
+        glTexCoord2f(1,0); glVertex2f((player.x + player.w),player.y);
+        glTexCoord2f(1,1); glVertex2f((player.x + player.w),(player.y + player.h));
+        glTexCoord2f(0,1); glVertex2f(player.x,(player.y + player.h));
     glEnd();
+	//Render platform(s) if they're present
+	if(platformsPresent){
+		glBindTexture(GL_TEXTURE_2D, platformTexture);
+		glBegin(GL_QUADS);
+			glTexCoord2f(0,0); glVertex2f(platform.x,platform.y);
+			glTexCoord2f(1,0); glVertex2f((platform.x + platform.w),platform.y);
+			glTexCoord2f(1,1); glVertex2f((platform.x + platform.w),(platform.y + platform.h));
+			glTexCoord2f(0,1); glVertex2f(platform.x,(platform.y + platform.h));
+		glEnd();
+	}
     //Done with rendering, disable this flags
     glDisable(GL_TEXTURE_2D);
 }
@@ -259,6 +283,10 @@ void playGame(){
 						jumping = true;
 						yVel = 20;
 					}
+					break;
+				case SDLK_x:
+					generatePlatforms();
+					playerMoved = true;
 					break;
             }
         }
@@ -321,6 +349,12 @@ void playGame(){
             playerMoved = false;
         }
     }
+}
+//Function to generate platforms (TODO: Maybe take in a vector of pairs, x and y coords?)
+void generatePlatforms(){
+	platform.x = 20;
+	platform.y = 445;
+	platformsPresent = true;
 }
 //Main
 int main(int argc, char *argv[]){
