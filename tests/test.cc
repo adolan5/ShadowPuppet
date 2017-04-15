@@ -15,6 +15,7 @@ bool initializeGL();
 void glRender();
 void playGame();
 void generatePlatforms(); //TODO: Integration with Kinect stuff!
+bool collision();
 
 /*          Private variables       */
 //Window dimensions
@@ -40,8 +41,8 @@ static SDL_Rect player;
 //X and Y velocities for our player
 static const int xVel = 5;
 static int yVel = 0;
-//Bool for if player has even moved (save a screen swap)
-static bool playerMoved = true;
+//Bool for if a render is even needed (save a screen swap)
+static bool needRender = true;
 static bool jumping = false;
 //Platform rect (Will change to array of these at some point)
 static SDL_Rect platform;
@@ -269,11 +270,11 @@ void playGame(){
             switch(event.key.keysym.sym){
                 case SDLK_RIGHT:
                     player.x += xVel;
-                    playerMoved = true;
+                    needRender = true;
                     break;
                 case SDLK_LEFT:
                     player.x -= xVel;
-                    playerMoved = true;
+                    needRender = true;
                     break;
                 case SDLK_ESCAPE:
                     gameRunning = false;
@@ -286,7 +287,7 @@ void playGame(){
 					break;
 				case SDLK_x:
 					generatePlatforms();
-					playerMoved = true;
+					needRender = true;
 					break;
             }
         }
@@ -303,11 +304,11 @@ void playGame(){
         if(gamepadConnected){
             if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) > deadzone){
                 player.x += xVel;
-                playerMoved = true;
+                needRender = true;
             }
             if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) < -deadzone){
                 player.x -= xVel;
-                playerMoved = true;
+                needRender = true;
             }
             if(SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_A) == 1){
 				if(!jumping){
@@ -319,7 +320,7 @@ void playGame(){
         //Update player's y position, only happens when jumping (or falling)
         if(jumping){
 			player.y -= yVel;
-			playerMoved = true;
+			needRender = true;
 		}
         
         //TODO: Replace these if conditions with collision detection
@@ -343,10 +344,10 @@ void playGame(){
 			yVel--;
 		}
         //Rendering to screen
-        if(playerMoved){
+        if(needRender){
             glRender();
             SDL_GL_SwapWindow(window);
-            playerMoved = false;
+            needRender = false;
         }
     }
 }
@@ -355,6 +356,10 @@ void generatePlatforms(){
 	platform.x = 20;
 	platform.y = 445;
 	platformsPresent = true;
+}
+//Function to check if the player has collided with any platforms
+bool collision(){
+	return false;
 }
 //Main
 int main(int argc, char *argv[]){
