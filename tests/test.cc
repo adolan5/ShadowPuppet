@@ -326,18 +326,16 @@ void playGame(){
 			}
         }
         //Update player's y position, only happens when jumping (or falling)
-        if(jumping){
-			player.y -= yVel;
-			needRender = true;
-			if(collision()){
-				if(player.y < platform.y){
-					player.y = (platform.y - player.h);
-					yVel = -1;
-					jumping = false;
-				}else{
-					player.y = (platform.y + platform.h);
-					yVel = -10;
-				}
+		player.y -= yVel;
+		needRender = true;
+		if(collision()){
+			if(player.y < platform.y){
+				player.y = (platform.y - player.h);
+				yVel = -1;
+				jumping = false;
+			}else{
+				player.y = (platform.y + platform.h);
+				yVel = -10;
 			}
 		}
         
@@ -358,9 +356,10 @@ void playGame(){
 			yVel = -10;
 		}
 		//Updating yVel if it isn't -10
-		if(jumping){
-			yVel--;
-		}
+// 		if(jumping){
+// 			yVel--;
+// 		}
+		yVel--;
         //Rendering to screen
         if(needRender){
             glRender();
