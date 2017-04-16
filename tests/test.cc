@@ -3,6 +3,7 @@
 #include "SDL.h"
 #include <SDL_opengl.h>
 #include <SDL_image.h>
+#include <vector>
 
 using namespace std;
 
@@ -14,7 +15,7 @@ void quitGame();
 bool initializeGL();
 void glRender();
 void playGame();
-void generatePlatforms(); //TODO: Integration with Kinect stuff!
+void generatePlatforms(vector<pair<int, int> > coordPairs); //TODO: Integration with Kinect stuff!
 bool collision();
 
 /*          Private variables       */
@@ -44,10 +45,16 @@ static int yVel = 0;
 //Bool for if a render is even needed (save a screen swap)
 static bool needRender = true;
 static bool jumping = false;
-//Platform rect (Will change to array of these at some point)
+//Vector of platform rects(?)
 static SDL_Rect platform;
+static vector<SDL_Rect> platforms(20);
 //Bool for if platforms are present
 static bool platformsPresent = false;
+//Number of platforms
+static int numPlatforms = 0;
+
+//A vector of pairs, for TESTING ONLY!
+vector<pair<int,int> > testVec = {make_pair(400, 400), make_pair(285, 360)};
 
 //Function that initializes SDL and other libraries
 int initialize(){
@@ -93,10 +100,6 @@ int initialize(){
     player.y = 440;
     player.w = 40;
     player.h = 40;
-	
-	//Platform widths and heights will always be the same
-	platform.w = 100;
-	platform.h = 25;
     
     //Opening the gamepad if one is connected
     openGamepad();
@@ -217,13 +220,15 @@ void glRender(){
     glEnd();
 	//Render platform(s) if they're present
 	if(platformsPresent){
-		glBindTexture(GL_TEXTURE_2D, platformTexture);
-		glBegin(GL_QUADS);
-			glTexCoord2f(0,0); glVertex2f(platform.x,platform.y);
-			glTexCoord2f(1,0); glVertex2f((platform.x + platform.w),platform.y);
-			glTexCoord2f(1,1); glVertex2f((platform.x + platform.w),(platform.y + platform.h));
-			glTexCoord2f(0,1); glVertex2f(platform.x,(platform.y + platform.h));
-		glEnd();
+		for(int i = 0; i < numPlatforms; i++){
+			glBindTexture(GL_TEXTURE_2D, platformTexture);
+			glBegin(GL_QUADS);
+				glTexCoord2f(0,0); glVertex2f(platforms[i].x,platforms[i].y);
+				glTexCoord2f(1,0); glVertex2f((platforms[i].x + platforms[i].w),platforms[i].y);
+				glTexCoord2f(1,1); glVertex2f((platforms[i].x + platforms[i].w),(platforms[i].y + platforms[i].h));
+				glTexCoord2f(0,1); glVertex2f(platforms[i].x,(platforms[i].y + platforms[i].h));
+			glEnd();
+		}
 	}
     //Done with rendering, disable this flags
     glDisable(GL_TEXTURE_2D);
@@ -294,7 +299,7 @@ void playGame(){
 					}
 					break;
 				case SDLK_x:
-					generatePlatforms();
+					generatePlatforms(testVec);
 					needRender = true;
 					break;
             }
@@ -366,7 +371,17 @@ void playGame(){
     }
 }
 //Function to generate platforms (TODO: Maybe take in a vector of pairs, x and y coords?)
-void generatePlatforms(){
+void generatePlatforms(vector<pair<int, int> > coordPairs){
+	for(auto v : coordPairs){
+		platforms[numPlatforms].x = v.first;
+		platforms[numPlatforms].y = v.second;
+		platforms[numPlatforms].w = 100;
+		platforms[numPlatforms].h = 25;
+		numPlatforms++;
+	}
+	//Platform widths and heights will always be the same
+	platform.w = 100;
+	platform.h = 25;
 	platform.x = 125;
 	platform.y = 400;
 	platformsPresent = true;
