@@ -271,10 +271,18 @@ void playGame(){
                 case SDLK_RIGHT:
                     player.x += xVel;
                     needRender = true;
+					if(collision()){
+						player.x -= xVel;
+						needRender = false;
+					}
                     break;
                 case SDLK_LEFT:
                     player.x -= xVel;
                     needRender = true;
+					if(collision()){
+						player.x += xVel;
+						needRender = false;
+					}
                     break;
                 case SDLK_ESCAPE:
                     gameRunning = false;
@@ -321,6 +329,16 @@ void playGame(){
         if(jumping){
 			player.y -= yVel;
 			needRender = true;
+			if(collision()){
+				if(player.y < platform.y){
+					player.y = (platform.y - player.h);
+					yVel = -1;
+					jumping = false;
+				}else{
+					player.y = (platform.y + platform.h);
+					yVel = -10;
+				}
+			}
 		}
         
         //TODO: Replace these if conditions with collision detection
@@ -353,12 +371,21 @@ void playGame(){
 }
 //Function to generate platforms (TODO: Maybe take in a vector of pairs, x and y coords?)
 void generatePlatforms(){
-	platform.x = 20;
-	platform.y = 445;
+	platform.x = 125;
+	platform.y = 400;
 	platformsPresent = true;
 }
 //Function to check if the player has collided with any platforms
 bool collision(){
+	//Can't have collisions if there are no platforms present
+	if(!platformsPresent){
+		return false;
+	}
+	if(((player.x + player.w) > platform.x) && (player.x < (platform.x + platform.w))){
+		if(((player.y + player.h) > platform.y) && (player.y < (platform.y + platform.h))){
+			return true;
+		}
+	}
 	return false;
 }
 //Main
