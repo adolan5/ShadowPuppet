@@ -355,10 +355,7 @@ void playGame(){
 			player.y = 0;
 			yVel = -10;
 		}
-		//Updating yVel if it isn't -10
-// 		if(jumping){
-// 			yVel--;
-// 		}
+		//Updating yVel
 		yVel--;
         //Rendering to screen
         if(needRender){
