@@ -16,7 +16,7 @@ bool initializeGL();
 void glRender();
 void playGame();
 void generatePlatforms(vector<pair<int, int> > coordPairs); //TODO: Integration with Kinect stuff!
-bool collision();
+int collision();
 
 /*          Private variables       */
 //Window dimensions
@@ -45,8 +45,7 @@ static int yVel = 0;
 //Bool for if a render is even needed (save a screen swap)
 static bool needRender = true;
 static bool jumping = false;
-//Vector of platform rects(?)
-static SDL_Rect platform;
+//Vector of platform rects
 static vector<SDL_Rect> platforms(20);
 //Bool for if platforms are present
 static bool platformsPresent = false;
@@ -54,7 +53,7 @@ static bool platformsPresent = false;
 static int numPlatforms = 0;
 
 //A vector of pairs, for TESTING ONLY!
-vector<pair<int,int> > testVec = {make_pair(400, 400), make_pair(285, 360)};
+vector<pair<int,int> > testVec = {make_pair(400, 400), make_pair(285, 360), make_pair(100, 280)};
 
 //Function that initializes SDL and other libraries
 int initialize(){
@@ -276,7 +275,7 @@ void playGame(){
                 case SDLK_RIGHT:
                     player.x += xVel;
                     needRender = true;
-					if(collision()){
+					if(collision() != -1){
 						player.x -= xVel;
 						needRender = false;
 					}
@@ -284,7 +283,7 @@ void playGame(){
                 case SDLK_LEFT:
                     player.x -= xVel;
                     needRender = true;
-					if(collision()){
+					if(collision() != -1){
 						player.x += xVel;
 						needRender = false;
 					}
@@ -333,18 +332,19 @@ void playGame(){
         //Update player's y position, only happens when jumping (or falling)
 		player.y -= yVel;
 		needRender = true;
-		if(collision()){
-			if(player.y < platform.y){
-				player.y = (platform.y - player.h);
+		int collisionCheck = collision();
+		if(collisionCheck != -1){
+			if(player.y < platforms[collisionCheck].y){
+				player.y = (platforms[collisionCheck].y - player.h);
 				yVel = -1;
 				jumping = false;
 			}else{
-				player.y = (platform.y + platform.h);
+				player.y = (platforms[collisionCheck].y + platforms[collisionCheck].h);
 				yVel = -10;
 			}
 		}
         
-        //TODO: Replace these if conditions with collision detection
+        //Keeping the player on screen
         if(player.x < 0){
             player.x = 0;
         }
@@ -370,7 +370,7 @@ void playGame(){
         }
     }
 }
-//Function to generate platforms (TODO: Maybe take in a vector of pairs, x and y coords?)
+//Function to generate platforms; takes in a vector of coords TODO: Kinect stuff goes here
 void generatePlatforms(vector<pair<int, int> > coordPairs){
 	for(auto v : coordPairs){
 		platforms[numPlatforms].x = v.first;
@@ -379,25 +379,22 @@ void generatePlatforms(vector<pair<int, int> > coordPairs){
 		platforms[numPlatforms].h = 25;
 		numPlatforms++;
 	}
-	//Platform widths and heights will always be the same
-	platform.w = 100;
-	platform.h = 25;
-	platform.x = 125;
-	platform.y = 400;
 	platformsPresent = true;
 }
-//Function to check if the player has collided with any platforms
-bool collision(){
+//Function to check if the player has collided with any platforms, returns the index of the platform collided with
+int collision(){
 	//Can't have collisions if there are no platforms present
 	if(!platformsPresent){
-		return false;
+		return -1;
 	}
-	if(((player.x + player.w) > platform.x) && (player.x < (platform.x + platform.w))){
-		if(((player.y + player.h) > platform.y) && (player.y < (platform.y + platform.h))){
-			return true;
+	for(int i = 0; i < numPlatforms; i++){
+		if(((player.x + player.w) > platforms[i].x) && (player.x < (platforms[i].x + platforms[i].w))){
+			if(((player.y + player.h) > platforms[i].y) && (player.y < (platforms[i].y + platforms[i].h))){
+				return i;
+			}
 		}
 	}
-	return false;
+	return -1;
 }
 //Main
 int main(int argc, char *argv[]){
