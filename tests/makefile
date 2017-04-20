@@ -1,5 +1,5 @@
 CC = g++
-C_Flags = -Wfatal-errors -Wall `sdl2-config --cflags` `sdl2-config --libs`
+C_Flags = -std=c++11 -Wfatal-errors -Wall `sdl2-config --cflags` `sdl2-config --libs`
 LINKER_FLAGS = -lGL -lSDL2_image
 EXE = test
 C_SRCS = test.cc

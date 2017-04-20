@@ -3,6 +3,7 @@
 #include "SDL.h"
 #include <SDL_opengl.h>
 #include <SDL_image.h>
+#include <vector>
 
 using namespace std;
 
@@ -14,6 +15,8 @@ void quitGame();
 bool initializeGL();
 void glRender();
 void playGame();
+void generatePlatforms(vector<pair<int, int> > coordPairs); //TODO: Integration with Kinect stuff!
+int collision();
 
 /*          Private variables       */
 //Window dimensions
@@ -26,6 +29,7 @@ static SDL_GameController *controller;
 static SDL_GLContext gameContext;
 static GLuint backgroundTexture = 0;
 static GLuint playerTexture = 0;
+static GLuint platformTexture = 0;
 //Controller deadzone
 static const int deadzone = 8000;
 //An event to be polled
@@ -38,9 +42,18 @@ static SDL_Rect player;
 //X and Y velocities for our player
 static const int xVel = 5;
 static int yVel = 0;
-//Bool for if player has even moved (save a screen swap)
-static bool playerMoved = true;
+//Bool for if a render is even needed (save a screen swap)
+static bool needRender = true;
 static bool jumping = false;
+//Vector of platform rects
+static vector<SDL_Rect> platforms(20);
+//Bool for if platforms are present
+static bool platformsPresent = false;
+//Number of platforms
+static int numPlatforms = 0;
+
+//A vector of pairs, for TESTING ONLY!
+vector<pair<int,int> > testVec = {make_pair(400, 400), make_pair(285, 360), make_pair(100, 280)};
 
 //Function that initializes SDL and other libraries
 int initialize(){
@@ -135,6 +148,10 @@ bool initializeGL(){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load texture from string! Error: %s\n", SDL_GetError());
         return false;
     }
+    if(!loadTexture(string("../images/Platform.png"), platformTexture)){
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load platform texture from string! Error: %s\n", SDL_GetError());
+		return false;
+	}
     return true;
 }
 
@@ -196,10 +213,22 @@ void glRender(){
     glBindTexture(GL_TEXTURE_2D, playerTexture);
     glBegin(GL_QUADS);
         glTexCoord2f(0,0); glVertex2f(player.x,player.y);
-        glTexCoord2f(1,0); glVertex2f((player.x + 40),player.y);
-        glTexCoord2f(1,1); glVertex2f((player.x + 40),(player.y + 40));
-        glTexCoord2f(0,1); glVertex2f(player.x,(player.y + 40));
+        glTexCoord2f(1,0); glVertex2f((player.x + player.w),player.y);
+        glTexCoord2f(1,1); glVertex2f((player.x + player.w),(player.y + player.h));
+        glTexCoord2f(0,1); glVertex2f(player.x,(player.y + player.h));
     glEnd();
+	//Render platform(s) if they're present
+	if(platformsPresent){
+		for(int i = 0; i < numPlatforms; i++){
+			glBindTexture(GL_TEXTURE_2D, platformTexture);
+			glBegin(GL_QUADS);
+				glTexCoord2f(0,0); glVertex2f(platforms[i].x,platforms[i].y);
+				glTexCoord2f(1,0); glVertex2f((platforms[i].x + platforms[i].w),platforms[i].y);
+				glTexCoord2f(1,1); glVertex2f((platforms[i].x + platforms[i].w),(platforms[i].y + platforms[i].h));
+				glTexCoord2f(0,1); glVertex2f(platforms[i].x,(platforms[i].y + platforms[i].h));
+			glEnd();
+		}
+	}
     //Done with rendering, disable this flags
     glDisable(GL_TEXTURE_2D);
 }
@@ -245,11 +274,19 @@ void playGame(){
             switch(event.key.keysym.sym){
                 case SDLK_RIGHT:
                     player.x += xVel;
-                    playerMoved = true;
+                    needRender = true;
+					if(collision() != -1){
+						player.x -= xVel;
+						needRender = false;
+					}
                     break;
                 case SDLK_LEFT:
                     player.x -= xVel;
-                    playerMoved = true;
+                    needRender = true;
+					if(collision() != -1){
+						player.x += xVel;
+						needRender = false;
+					}
                     break;
                 case SDLK_ESCAPE:
                     gameRunning = false;
@@ -259,6 +296,10 @@ void playGame(){
 						jumping = true;
 						yVel = 20;
 					}
+					break;
+				case SDLK_x:
+					generatePlatforms(testVec);
+					needRender = true;
 					break;
             }
         }
@@ -275,11 +316,11 @@ void playGame(){
         if(gamepadConnected){
             if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) > deadzone){
                 player.x += xVel;
-                playerMoved = true;
+                needRender = true;
             }
             if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) < -deadzone){
                 player.x -= xVel;
-                playerMoved = true;
+                needRender = true;
             }
             if(SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_A) == 1){
 				if(!jumping){
@@ -289,12 +330,21 @@ void playGame(){
 			}
         }
         //Update player's y position, only happens when jumping (or falling)
-        if(jumping){
-			player.y -= yVel;
-			playerMoved = true;
+		player.y -= yVel;
+		needRender = true;
+		int collisionCheck = collision();
+		if(collisionCheck != -1){
+			if(player.y < platforms[collisionCheck].y){
+				player.y = (platforms[collisionCheck].y - player.h);
+				yVel = -1;
+				jumping = false;
+			}else{
+				player.y = (platforms[collisionCheck].y + platforms[collisionCheck].h);
+				yVel = -10;
+			}
 		}
         
-        //TODO: Replace these if conditions with collision detection
+        //Keeping the player on screen
         if(player.x < 0){
             player.x = 0;
         }
@@ -310,17 +360,41 @@ void playGame(){
 			player.y = 0;
 			yVel = -10;
 		}
-		//Updating yVel if it isn't -10
-		if(jumping){
-			yVel--;
-		}
+		//Updating yVel
+		yVel--;
         //Rendering to screen
-        if(playerMoved){
+        if(needRender){
             glRender();
             SDL_GL_SwapWindow(window);
-            playerMoved = false;
+            needRender = false;
         }
     }
+}
+//Function to generate platforms; takes in a vector of coords TODO: Kinect stuff goes here
+void generatePlatforms(vector<pair<int, int> > coordPairs){
+	for(auto v : coordPairs){
+		platforms[numPlatforms].x = v.first;
+		platforms[numPlatforms].y = v.second;
+		platforms[numPlatforms].w = 100;
+		platforms[numPlatforms].h = 25;
+		numPlatforms++;
+	}
+	platformsPresent = true;
+}
+//Function to check if the player has collided with any platforms, returns the index of the platform collided with
+int collision(){
+	//Can't have collisions if there are no platforms present
+	if(!platformsPresent){
+		return -1;
+	}
+	for(int i = 0; i < numPlatforms; i++){
+		if(((player.x + player.w) > platforms[i].x) && (player.x < (platforms[i].x + platforms[i].w))){
+			if(((player.y + player.h) > platforms[i].y) && (player.y < (platforms[i].y + platforms[i].h))){
+				return i;
+			}
+		}
+	}
+	return -1;
 }
 //Main
 int main(int argc, char *argv[]){
