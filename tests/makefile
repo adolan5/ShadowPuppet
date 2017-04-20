@@ -1,14 +1,11 @@
 CC = g++
-C_Flags = -Wfatal-errors -Wall `sdl2-config --cflags` `sdl2-config --libs`
-LINKER_FLAGS = -lGL -lSDL2_image
+CXXFLAGS = -std=c++11 -Wall -ggdb
+LINKER_FLAGS = -lfreenect -lfreenect_sync -lusb-1.0 -lpthread
 EXE = test
-C_SRCS = test.cc
+CXXSRCS = K.cc
 
 all:
-	$(CC) -o $(EXE) $(C_SRCS) $(LINKER_FLAGS) $(C_Flags)
-	
-debug:
-	$(CC) -o $(EXE) $(C_SRCS) -ggdb $(LINKER_FLAGS) $(C_Flags)
-	
+	$(CC) $(CXXFLAGS) -o $(EXE) $(CXXSRCS) $(LINKER_FLAGS)
+
 clean:
-	rm -f $(EXE)
+	-rm -f $(EXE) *.o
