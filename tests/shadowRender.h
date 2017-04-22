@@ -19,7 +19,7 @@ class ShadowRenderer{
 		void glRender(SDL_Rect player, bool platformsPresent, const int numPlatforms, std::vector<SDL_Rect> platforms);
 	private:
 		//Initialize the OpenGL components
-		bool initializeGL();
+		bool initializeGL(SDL_Window *window);
 		
 		//Load a texture from an image
 		bool loadTexture(std::string image, GLuint &textureID);
@@ -32,6 +32,9 @@ class ShadowRenderer{
 		GLuint backgroundTexture;
 		GLuint playerTexture;
 		GLuint platformTexture;
+		
+		//OpenGL context
+		SDL_GLContext gameContext;
 		
 };
 

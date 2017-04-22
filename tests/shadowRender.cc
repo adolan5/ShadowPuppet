@@ -3,9 +3,7 @@
 using namespace std;
 
 //Ctor
-ShadowRenderer::ShadowRenderer(const int h, const int w): WINDOW_HEIGHT(h), WINDOW_WIDTH(w), backgroundTexture(0), playerTexture(0), platformTexture(0){
-	initializeGL();
-}
+ShadowRenderer::ShadowRenderer(const int h, const int w): WINDOW_HEIGHT(h), WINDOW_WIDTH(w), backgroundTexture(0), playerTexture(0), platformTexture(0){	}
 
 //Dtor
 ShadowRenderer::~ShadowRenderer(){
@@ -15,7 +13,18 @@ ShadowRenderer::~ShadowRenderer(){
 }
 
 //Initialize GL components, SDL_Image, and load textures
-bool ShadowRenderer::initializeGL(){
+bool ShadowRenderer::initializeGL(SDL_Window *window){
+	//Setting some SDL_GL attributes
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+	
+	//Create OpenGL context
+	gameContext = SDL_GL_CreateContext(window);
+	if(gameContext == NULL){
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create OpenGL context. Error: %s\n", SDL_GetError());
+        return 1;
+    }
+	
 	//Initialize SDL_image
 	int image = IMG_Init(IMG_INIT_PNG);
     if((image & IMG_INIT_PNG) != IMG_INIT_PNG){
@@ -23,14 +32,15 @@ bool ShadowRenderer::initializeGL(){
 		return 1;
     }
 	
-	//Setting up the orthographic coordinate system
+    //Setting up the orthographic coordinate system
 	glOrtho(0.0, WINDOW_WIDTH, WINDOW_HEIGHT, 0.0, 1.0, -1.0);
 	
-	//These flags must be enabled for transparency of PNGs to work
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//Loading textures
-	if(!loadTexture(string("../images/marblePng.png"), backgroundTexture)){
+    //These flags must be enabled for transparency of PNGs to work
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+    //Loading the textures we're using
+    if(!loadTexture(string("../images/marblePng.png"), backgroundTexture)){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load texture from string! Error: %s\n", SDL_GetError());
         return false;
     }
@@ -42,7 +52,7 @@ bool ShadowRenderer::initializeGL(){
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load platform texture from string! Error: %s\n", SDL_GetError());
 		return false;
 	}
-	return true;
+    return true;
 }
 
 void ShadowRenderer::glRender(SDL_Rect player, bool platformsPresent, const int numPlatforms, vector<SDL_Rect> platforms){

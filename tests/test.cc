@@ -138,7 +138,6 @@ void quitGame(){
     glDeleteTextures(1, &backgroundTexture);
     glDeleteTextures(1, &playerTexture);
 	glDeleteTextures(1, &platformTexture);
-	//~myRenderer();
     SDL_GL_DeleteContext(gameContext);
     SDL_DestroyWindow(window);
     if(gamepadConnected){
