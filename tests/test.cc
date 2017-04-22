@@ -1,9 +1,10 @@
 #include <iostream>
 #include <string>
-#include "SDL.h"
+#include <SDL.h>
 #include <SDL_opengl.h>
 #include <SDL_image.h>
 #include <vector>
+#include "shadowRender.h"
 
 using namespace std;
 
@@ -63,12 +64,6 @@ int initialize(){
         return 1;
     }
     
-    //Initializing SDL_image
-    int image = IMG_Init(IMG_INIT_PNG);
-    if((image & IMG_INIT_PNG) != IMG_INIT_PNG){
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL_image! Error: %s\n", IMG_GetError());
-		return 1;
-    }
     
     //Setting some SDL_GL attributes
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
@@ -94,6 +89,13 @@ int initialize(){
         return 1;
     }
     
+    //Initializing SDL_image
+    int image = IMG_Init(IMG_INIT_PNG);
+    if((image & IMG_INIT_PNG) != IMG_INIT_PNG){
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL_image! Error: %s\n", IMG_GetError());
+		return 1;
+    }
+	
     //Setting player initial position
     player.x = 0;
     player.y = 440;
@@ -107,33 +109,8 @@ int initialize(){
 
 //Function to start up OpenGL via OpenGL code
 bool initializeGL(){
-    GLenum error = GL_NO_ERROR;
-    //Initialize projection matrix
-    glMatrixMode(GL_PROJECTION);
-    //Replaces current matrix with identity matrix
-    glLoadIdentity();
-    error = glGetError();
-    if(error != GL_NO_ERROR){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL.\n");
-        return false;
-    }
-    //Initialize Modelview matrix
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    error = glGetError();
-    if(error != GL_NO_ERROR){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL.\n");
-        return false;
-    }
-    //Initialize clear color
-    glClearColor(0.f, 0.f, 0.f, 1.f);
-    error = glGetError();
-    if(error != GL_NO_ERROR){
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize OpenGL.\n");
-        return false;
-    }
     //Setting up the orthographic coordinate system
-    glOrtho(0.0, WINDOW_WIDTH, WINDOW_HEIGHT, 0.0, 1.0, -1.0);
+	glOrtho(0.0, WINDOW_WIDTH, WINDOW_HEIGHT, 0.0, 1.0, -1.0);
 	
     //These flags must be enabled for transparency of PNGs to work
     glEnable(GL_BLEND);
@@ -160,6 +137,8 @@ void quitGame(){
     //Delete textures now that we're done with them (and avoiding a very bad memory leak!)
     glDeleteTextures(1, &backgroundTexture);
     glDeleteTextures(1, &playerTexture);
+	glDeleteTextures(1, &platformTexture);
+	//~myRenderer();
     SDL_GL_DeleteContext(gameContext);
     SDL_DestroyWindow(window);
     if(gamepadConnected){
@@ -363,6 +342,7 @@ void playGame(){
         //Rendering to screen
         if(needRender){
             glRender();
+			//~myRenderer.glRender();
             SDL_GL_SwapWindow(window);
             needRender = false;
         }
