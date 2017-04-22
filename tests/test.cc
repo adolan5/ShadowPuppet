@@ -194,7 +194,7 @@ bool loadTexture(string image, GLuint &textureID){
 }
 
 /*
-Funtion that does the OpenGL side of rendering textures that are loaded from images
+Function that does the OpenGL side of rendering textures that are loaded from images
 */
 void glRender(){
     //Clear the context first
@@ -251,7 +251,7 @@ void playGame(){
 	//Main game loop
     while(gameRunning){
         //TODO: Keep/fix delay for smoothness?
-        //SDL_Delay(30); //<--Commented out because of its unusual response time while a controller is connected I believe this bug comes from mixing event polling and constant condition checking
+        SDL_Delay(10); //Trying to use this, keeping controller handling out of event polling
         
         //Event Handling
         SDL_PollEvent(&event);
@@ -303,14 +303,6 @@ void playGame(){
 					break;
             }
         }
-        //Controller buttons
-        if(event.type == SDL_CONTROLLERBUTTONDOWN){
-			switch(event.cbutton.button){
-				case SDL_CONTROLLER_BUTTON_B:
-					gameRunning = false;
-					break;
-			}
-		}
 		
         //Controller input
         if(gamepadConnected){
@@ -327,6 +319,12 @@ void playGame(){
 					jumping = true;
 					yVel = 20;
 				}
+			}
+			if(SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_B) == 1){
+				gameRunning = false;
+			}
+			if(SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_X) == 1){
+				generatePlatforms(testVec);
 			}
         }
         //Update player's y position, only happens when jumping (or falling)
@@ -372,6 +370,9 @@ void playGame(){
 }
 //Function to generate platforms; takes in a vector of coords TODO: Kinect stuff goes here
 void generatePlatforms(vector<pair<int, int> > coordPairs){
+	//Need to clear out the current platforms before making the new ones
+	platforms.clear();
+	numPlatforms = 0;
 	for(auto v : coordPairs){
 		platforms[numPlatforms].x = v.first;
 		platforms[numPlatforms].y = v.second;
