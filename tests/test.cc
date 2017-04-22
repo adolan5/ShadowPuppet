@@ -2,7 +2,6 @@
 #include <string>
 #include <SDL.h>
 #include <SDL_opengl.h>
-#include <SDL_image.h>
 #include <vector>
 #include "shadowRender.h"
 
@@ -45,7 +44,7 @@ static bool platformsPresent = false;
 //Number of platforms
 static int numPlatforms = 0;
 
-//SHADOW RENDERER
+//SHADOW RENDERER (Yay organization!)
 static ShadowRenderer renderer(WINDOW_HEIGHT, WINDOW_WIDTH);
 
 //A vector of pairs, for TESTING ONLY!

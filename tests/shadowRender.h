@@ -1,7 +1,8 @@
+/*ShadowRenderer is a class that is responsible for the rendering portion of ShadowPuppet
+Author: Andy Dolan*/
 #ifndef RENDERER_INCLUDED
 #define RENDERER_INCLUDED
 
-#include <iostream>
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <SDL_image.h>
