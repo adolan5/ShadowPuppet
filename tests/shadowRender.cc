@@ -10,6 +10,8 @@ ShadowRenderer::~ShadowRenderer(){
 	glDeleteTextures(1, &backgroundTexture);
 	glDeleteTextures(1, &playerTexture);
 	glDeleteTextures(1, &platformTexture);
+	SDL_GL_DeleteContext(gameContext);
+	IMG_Quit();
 }
 
 //Initialize GL components, SDL_Image, and load textures
@@ -55,7 +57,7 @@ bool ShadowRenderer::initializeGL(SDL_Window *window){
     return true;
 }
 
-void ShadowRenderer::glRender(SDL_Rect player, bool platformsPresent, const int numPlatforms, vector<SDL_Rect> platforms){
+void ShadowRenderer::glRender(SDL_Rect player, bool platformsPresent, const int numPlatforms, vector<SDL_Rect> &platforms){
 	//Clear the context first
     glClear(GL_COLOR_BUFFER_BIT);
     //Need this to be enabled for this portion

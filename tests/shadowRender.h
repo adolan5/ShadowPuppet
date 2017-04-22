@@ -15,11 +15,15 @@ class ShadowRenderer{
 		
 		//Dtor destroys textures
 		~ShadowRenderer();
-		//Render textures
-		void glRender(SDL_Rect player, bool platformsPresent, const int numPlatforms, std::vector<SDL_Rect> platforms);
-	private:
+		
 		//Initialize the OpenGL components
 		bool initializeGL(SDL_Window *window);
+		
+		//Render textures
+		void glRender(SDL_Rect player, bool platformsPresent, const int numPlatforms, 
+			std::vector<SDL_Rect> &platforms);
+			
+	private:
 		
 		//Load a texture from an image
 		bool loadTexture(std::string image, GLuint &textureID);

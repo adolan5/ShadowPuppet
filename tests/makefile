@@ -9,9 +9,12 @@ all: render
 	
 render: shadowRender.h shadowRender.cc
 	$(CC) $(LINKER_FLAGS) $(C_Flags) -c shadowRender.cc
+
+debug_render: shadowRender.h shadowRender.cc
+	$(CC) $(LINKER_FLAGS) -ggdb $(C_Flags) -c shadowRender.cc
 	
-debug:
-	$(CC) -o $(EXE) $(C_SRCS) -ggdb $(LINKER_FLAGS) $(C_Flags)
+debug: debug_render
+	$(CC) -o $(EXE) $(C_SRCS) shadowRender.o -ggdb $(LINKER_FLAGS) $(C_Flags)
 	
 clean:
 	rm -f $(EXE) *.o
