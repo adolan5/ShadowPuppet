@@ -15,7 +15,7 @@ using namespace std;
 	// all jumping/falling
 	void Player::jump(){
 		if(!falling){
-		    yvel = -12;
+		    yvel = -15;
 		    falling = true;
 		}
 		borderCollision();
@@ -45,7 +45,7 @@ using namespace std;
 	//border collision take into account that it looks at top left corner
 	void Player::borderCollision(){
 		//this case accounts for hitting the ground
-		if(y + height >= 480){
+		if(y + height > 480){
 		   falling = false;
 		   yvel = 0;
 		   y = 440;

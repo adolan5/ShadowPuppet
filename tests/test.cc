@@ -32,14 +32,10 @@ static const Uint8 *state;
 //Bool's for if the game is running and if a controller has been connected
 static bool gameRunning = true;
 static bool gamepadConnected = false;
-//Player rect (to be replaced with player class by Bhua)
-static Player player(0, 440);									//Will be replaced by player class by bhua
-//X and Y velocities for our player
-static const int xVel = 5;									//Will go inside player class
-static int yVel = 0;										//---------------------------
+//Player instance (Courtesy of Bhua)
+static Player player(0, 440);
 //Bool for if a render is even needed (save a screen swap)
 static bool needRender = true;
-static bool jumping = false;								//Also going into player class?
 //Vector of platform rects
 static vector<SDL_Rect> platforms;
 //Bool for if platforms are present
@@ -136,25 +132,22 @@ void playGame(){
         
         //Keyboad input (for testing)
 		if(state[SDL_SCANCODE_RIGHT]){
-			player.x += xVel;
+			player.moveRight();
 			needRender = true;
 			if(collision() != -1){
-				player.x -= xVel;
+				player.x -= player.xvel;
 				needRender = false;
 			}
 		}else if(state[SDL_SCANCODE_LEFT]){
-			player.x -= xVel;
+			player.moveLeft();
 			needRender = true;
 			if(collision() != -1){
-				player.x += xVel;
+				player.x += player.xvel;
 				needRender = false;
 			}
 		}
 		if(state[SDL_SCANCODE_SPACE]){
-			if(!jumping){
-				jumping = true;
-				yVel = 20;
-			}
+			player.jump();
 		}
 		if(state[SDL_SCANCODE_ESCAPE]){
 			gameRunning = false;
@@ -167,26 +160,23 @@ void playGame(){
         //Controller input
         if(gamepadConnected){
             if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) > deadzone){ //Alter to if(shadowController.movingLeft())? Or abstract entire controller checking section into shadowController.cc?
-                player.x += xVel;
+                player.moveRight();
                 needRender = true;
 				if(collision() != -1){
-					player.x -= xVel;
+					player.x -= player.xvel;
 					needRender = false;
 				}
             }
             if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) < -deadzone){
-                player.x -= xVel;
+                player.moveLeft();
                 needRender = true;
 				if(collision() != -1){
-					player.x += xVel;
+					player.x += player.xvel;
 					needRender = false;
 				}
             }
             if(SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_A) == 1){
-				if(!jumping){
-					jumping = true;
-					yVel = 20;
-				}
+				player.jump();
 			}
 			if(SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_B) == 1){
 				gameRunning = false;
@@ -196,38 +186,20 @@ void playGame(){
 			}
         }
         //Update player's y position, only happens when jumping (or falling)
-		player.y -= yVel;
+		player.ifFall();
 		needRender = true;
 		int collisionCheck = collision();
 		if(collisionCheck != -1){
 			if(player.y < platforms[collisionCheck].y){
 				player.y = (platforms[collisionCheck].y - player.height);
-				yVel = -1;
-				jumping = false;
+				player.yvel = 1;
+				player.falling = false;
 			}else{
 				player.y = (platforms[collisionCheck].y + platforms[collisionCheck].h);
-				yVel = -10;
+				player.yvel = 10;
 			}
 		}
-        
-        //Keeping the player on screen		Replace with player.borderCollision()
-        if(player.x < 0){
-            player.x = 0;
-        }
-        if(player.x > 600){
-            player.x = 600;
-        }
-        if(player.y > 440){
-			player.y = 440;
-			yVel = 0;
-			jumping = false; //This line for if we've been falling
-		}
-		if(player.y < 0){
-			player.y = 0;
-			yVel = -10;
-		}
-		//Updating yVel
-		yVel--;
+		
         //Rendering to screen
         if(needRender){
             renderer.glRender(player, platformsPresent, platforms);
