@@ -57,7 +57,7 @@ bool ShadowRenderer::initializeGL(SDL_Window *window){
     return true;
 }
 
-void ShadowRenderer::glRender(SDL_Rect player, bool platformsPresent, const int numPlatforms, vector<SDL_Rect> &platforms){
+void ShadowRenderer::glRender(SDL_Rect player, bool platformsPresent, vector<SDL_Rect> &platforms){
 	//Clear the context first
     glClear(GL_COLOR_BUFFER_BIT);
     //Need this to be enabled for this portion
@@ -80,7 +80,7 @@ void ShadowRenderer::glRender(SDL_Rect player, bool platformsPresent, const int 
     glEnd();
 	//Render platform(s) if they're present
 	if(platformsPresent){
-		for(int i = 0; i < numPlatforms; i++){
+		for(size_t i = 0; i < platforms.size(); i++){
 			glBindTexture(GL_TEXTURE_2D, platformTexture);
 			glBegin(GL_QUADS);
 				glTexCoord2f(0,0); glVertex2f(platforms[i].x,platforms[i].y);

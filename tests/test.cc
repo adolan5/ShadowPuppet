@@ -38,17 +38,16 @@ static int yVel = 0;
 static bool needRender = true;
 static bool jumping = false;
 //Vector of platform rects
-static vector<SDL_Rect> platforms(20);
+static vector<SDL_Rect> platforms;
 //Bool for if platforms are present
 static bool platformsPresent = false;
-//Number of platforms
-static int numPlatforms = 0;
+
 
 //SHADOW RENDERER (Yay organization!)
 static ShadowRenderer renderer(WINDOW_HEIGHT, WINDOW_WIDTH);
 
 //A vector of pairs, for TESTING ONLY!
-vector<pair<int,int> > testVec = {make_pair(400, 400), make_pair(285, 360), make_pair(100, 280)};
+vector<pair<int,int> > testVec = {make_pair(400, 400), make_pair(285, 360), make_pair(100, 280), make_pair(250, 100)};
 
 //Function that initializes SDL and other libraries
 int initialize(){
@@ -156,7 +155,7 @@ void playGame(){
 					}
 					break;
 				case SDLK_x:
-					generatePlatforms(testVec);
+					generatePlatforms(testVec); //Kinect call goes here
 					needRender = true;
 					break;
             }
@@ -167,10 +166,18 @@ void playGame(){
             if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) > deadzone){ //Alter to if(shadowController.movingLeft())? Or abstract entire controller checking section into shadowController.cc?
                 player.x += xVel;
                 needRender = true;
+				if(collision() != -1){
+					player.x -= xVel;
+					needRender = false;
+				}
             }
             if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) < -deadzone){
                 player.x -= xVel;
                 needRender = true;
+				if(collision() != -1){
+					player.x += xVel;
+					needRender = false;
+				}
             }
             if(SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_A) == 1){
 				if(!jumping){
@@ -220,7 +227,7 @@ void playGame(){
 		yVel--;
         //Rendering to screen
         if(needRender){
-            renderer.glRender(player, platformsPresent, numPlatforms, platforms);
+            renderer.glRender(player, platformsPresent, platforms);
             SDL_GL_SwapWindow(window);
             needRender = false;
         }
@@ -230,13 +237,14 @@ void playGame(){
 void generatePlatforms(vector<pair<int, int> > coordPairs){
 	//Need to clear out the current platforms before making the new ones
 	platforms.clear();
-	numPlatforms = 0;
 	for(auto v : coordPairs){
-		platforms[numPlatforms].x = v.first;
-		platforms[numPlatforms].y = v.second;
-		platforms[numPlatforms].w = 100;
-		platforms[numPlatforms].h = 25;
-		numPlatforms++;
+		//Make a new rect and push it onto the platform vector
+		SDL_Rect temp;
+		temp.x = v.first;
+		temp.y = v.second;
+		temp.w = 100;
+		temp.h = 25;
+		platforms.push_back(temp);
 	}
 	platformsPresent = true;
 }
@@ -246,7 +254,7 @@ int collision(){
 	if(!platformsPresent){
 		return -1;
 	}
-	for(int i = 0; i < numPlatforms; i++){
+	for(size_t i = 0; i < platforms.size(); i++){
 		if(((player.x + player.w) > platforms[i].x) && (player.x < (platforms[i].x + platforms[i].w))){
 			if(((player.y + player.h) > platforms[i].y) && (player.y < (platforms[i].y + platforms[i].h))){
 				return i;
