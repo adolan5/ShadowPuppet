@@ -26,6 +26,8 @@ static SDL_GameController *controller; //Could go in shadowController.cc
 static const int deadzone = 8000;		//Could go in shadowController.cc
 //An event to be polled
 static SDL_Event event;
+//Keyboard state
+static const Uint8 *state;
 //Bool's for if the game is running and if a controller has been connected
 static bool gameRunning = true;
 static bool gamepadConnected = false;
@@ -77,7 +79,12 @@ int initialize(){
     
     //Opening the gamepad if one is connected
     openGamepad();		//shadowController.openGamepad()?
+	
+	//Getting keyboard state
+	state = SDL_GetKeyboardState(NULL);
+	
     return 0;
+	
 }
 
 //Function to shut down all libraries and exit
@@ -127,39 +134,34 @@ void playGame(){
         }
         
         //Keyboad input (for testing)
-        if(event.type == SDL_KEYDOWN){
-            switch(event.key.keysym.sym){
-                case SDLK_RIGHT:
-                    player.x += xVel;
-                    needRender = true;
-					if(collision() != -1){
-						player.x -= xVel;
-						needRender = false;
-					}
-                    break;
-                case SDLK_LEFT:
-                    player.x -= xVel;
-                    needRender = true;
-					if(collision() != -1){
-						player.x += xVel;
-						needRender = false;
-					}
-                    break;
-                case SDLK_ESCAPE:
-                    gameRunning = false;
-                    break;
-				case SDLK_SPACE:
-					if(!jumping){
-						jumping = true;
-						yVel = 20;
-					}
-					break;
-				case SDLK_x:
-					generatePlatforms(testVec); //Kinect call goes here
-					needRender = true;
-					break;
-            }
-        }
+		if(state[SDL_SCANCODE_RIGHT]){
+			player.x += xVel;
+			needRender = true;
+			if(collision() != -1){
+				player.x -= xVel;
+				needRender = false;
+			}
+		}else if(state[SDL_SCANCODE_LEFT]){
+			player.x -= xVel;
+			needRender = true;
+			if(collision() != -1){
+				player.x += xVel;
+				needRender = false;
+			}
+		}
+		if(state[SDL_SCANCODE_SPACE]){
+			if(!jumping){
+				jumping = true;
+				yVel = 20;
+			}
+		}
+		if(state[SDL_SCANCODE_ESCAPE]){
+			gameRunning = false;
+		}
+		if(state[SDL_SCANCODE_X]){
+			generatePlatforms(testVec);
+			needRender = true;
+		}
 		
         //Controller input
         if(gamepadConnected){
