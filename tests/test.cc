@@ -32,8 +32,6 @@ static const Uint8 *state;
 //Bool's for if the game is running and if a controller has been connected
 static bool gameRunning = true;
 static bool gamepadConnected = false;
-//Player instance (Courtesy of Bhua)
-static Player player(0, 440);
 //Bool for if a render is even needed (save a screen swap)
 static bool needRender = true;
 //Vector of platform rects
@@ -41,7 +39,8 @@ static vector<SDL_Rect> platforms;
 //Bool for if platforms are present
 static bool platformsPresent = false;
 
-
+//Player instance (Courtesy of Bhua)
+static Player player(0, 440);
 //SHADOW RENDERER (Yay organization!)
 static ShadowRenderer renderer(WINDOW_HEIGHT, WINDOW_WIDTH);
 
@@ -198,6 +197,9 @@ void playGame(){
 				player.y = (platforms[collisionCheck].y + platforms[collisionCheck].h);
 				player.yvel = 10;
 			}
+		}
+		else if(player.y < 440){
+			player.falling = true;
 		}
 		
         //Rendering to screen
