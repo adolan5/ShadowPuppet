@@ -8,6 +8,7 @@ Author: Andy Dolan*/
 #include <SDL_image.h>
 #include <string>
 #include <vector>
+#include "Player.h"
 
 class ShadowRenderer{
 	public:
@@ -21,7 +22,7 @@ class ShadowRenderer{
 		bool initializeGL(SDL_Window *window);
 		
 		//Render textures
-		void glRender(SDL_Rect player, bool platformsPresent, std::vector<SDL_Rect> &platforms);
+		void glRender(Player player, bool platformsPresent, std::vector<SDL_Rect> &platforms);
 			
 	private:
 		

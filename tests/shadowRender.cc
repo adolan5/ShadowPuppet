@@ -57,7 +57,7 @@ bool ShadowRenderer::initializeGL(SDL_Window *window){
     return true;
 }
 
-void ShadowRenderer::glRender(SDL_Rect player, bool platformsPresent, vector<SDL_Rect> &platforms){
+void ShadowRenderer::glRender(Player player, bool platformsPresent, vector<SDL_Rect> &platforms){
 	//Clear the context first
     glClear(GL_COLOR_BUFFER_BIT);
     //Need this to be enabled for this portion
@@ -74,9 +74,9 @@ void ShadowRenderer::glRender(SDL_Rect player, bool platformsPresent, vector<SDL
     glBindTexture(GL_TEXTURE_2D, playerTexture);
     glBegin(GL_QUADS);
         glTexCoord2f(0,0); glVertex2f(player.x,player.y);
-        glTexCoord2f(1,0); glVertex2f((player.x + player.w),player.y);
-        glTexCoord2f(1,1); glVertex2f((player.x + player.w),(player.y + player.h));
-        glTexCoord2f(0,1); glVertex2f(player.x,(player.y + player.h));
+        glTexCoord2f(1,0); glVertex2f((player.x + player.width),player.y);
+        glTexCoord2f(1,1); glVertex2f((player.x + player.width),(player.y + player.height));
+        glTexCoord2f(0,1); glVertex2f(player.x,(player.y + player.height));
     glEnd();
 	//Render platform(s) if they're present
 	if(platformsPresent){

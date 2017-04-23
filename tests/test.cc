@@ -4,6 +4,7 @@
 #include <SDL_opengl.h>
 #include <vector>
 #include "shadowRender.h"
+#include "Player.h"
 
 using namespace std;
 
@@ -32,7 +33,7 @@ static const Uint8 *state;
 static bool gameRunning = true;
 static bool gamepadConnected = false;
 //Player rect (to be replaced with player class by Bhua)
-static SDL_Rect player;										//Will be replaced by player class by bhua
+static Player player(0, 440);									//Will be replaced by player class by bhua
 //X and Y velocities for our player
 static const int xVel = 5;									//Will go inside player class
 static int yVel = 0;										//---------------------------
@@ -74,8 +75,8 @@ int initialize(){
     //Setting player initial position
     player.x = 0;
     player.y = 440;
-    player.w = 40;
-    player.h = 40;
+    player.width = 40;
+    player.height = 40;
     
     //Opening the gamepad if one is connected
     openGamepad();		//shadowController.openGamepad()?
@@ -200,7 +201,7 @@ void playGame(){
 		int collisionCheck = collision();
 		if(collisionCheck != -1){
 			if(player.y < platforms[collisionCheck].y){
-				player.y = (platforms[collisionCheck].y - player.h);
+				player.y = (platforms[collisionCheck].y - player.height);
 				yVel = -1;
 				jumping = false;
 			}else{
@@ -257,8 +258,8 @@ int collision(){
 		return -1;
 	}
 	for(size_t i = 0; i < platforms.size(); i++){
-		if(((player.x + player.w) > platforms[i].x) && (player.x < (platforms[i].x + platforms[i].w))){
-			if(((player.y + player.h) > platforms[i].y) && (player.y < (platforms[i].y + platforms[i].h))){
+		if(((player.x + player.width) > platforms[i].x) && (player.x < (platforms[i].x + platforms[i].w))){
+			if(((player.y + player.height) > platforms[i].y) && (player.y < (platforms[i].y + platforms[i].h))){
 				return i;
 			}
 		}
