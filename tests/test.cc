@@ -21,15 +21,15 @@ static const int WINDOW_HEIGHT = 480;
 static const int WINDOW_WIDTH = 640;
 //Pointers for our window and renderer, and controller
 static SDL_Window *window;
-static SDL_GameController *controller;
+static SDL_GameController *controller; //Could go in shadowController.cc
 //Controller deadzone
-static const int deadzone = 8000;
+static const int deadzone = 8000;		//Could go in shadowController.cc
 //An event to be polled
 static SDL_Event event;
 //Bool's for if the game is running and if a controller has been connected
 static bool gameRunning = true;
 static bool gamepadConnected = false;
-//Player rect
+//Player rect (to be replaced with player class by Bhua)
 static SDL_Rect player;
 //X and Y velocities for our player
 static const int xVel = 5;
@@ -77,7 +77,7 @@ int initialize(){
     player.h = 40;
     
     //Opening the gamepad if one is connected
-    openGamepad();
+    openGamepad();		//shadowController.openGamepad()?
     return 0;
 }
 
@@ -85,14 +85,14 @@ int initialize(){
 void quitGame(){
     SDL_DestroyWindow(window);
     if(gamepadConnected){
-        SDL_GameControllerClose(controller);
+        SDL_GameControllerClose(controller);		//Let dtor of shadowController handle closing down a controller?
     }
     SDL_Quit();
 	//Note: ShadowRenderer's dtor takes care of destroying textures and shutting down SDL_Image
 }
 
 //Function to open a gamepad
-void openGamepad(){
+void openGamepad(){		//Could go in shadowController.cc
     int joysticks = SDL_NumJoysticks();
     //Loop through the joysticks, if it's a valid controller, open it
     for(int joystickIndex = 0; joystickIndex < joysticks; ++joystickIndex){
@@ -119,11 +119,11 @@ void playGame(){
         }
         //If a controller is connected during run
         if((event.type == SDL_CONTROLLERDEVICEADDED) && (!gamepadConnected)){
-            openGamepad();
+            openGamepad(); 		//shadowController.openGamepad()?
         }
         //If controller is disconnected during run
         if(event.type == SDL_CONTROLLERDEVICEREMOVED){
-            SDL_GameControllerClose(controller);
+            SDL_GameControllerClose(controller);	//shadowController.close()?
             gamepadConnected = false;
         }
         
@@ -164,7 +164,7 @@ void playGame(){
 		
         //Controller input
         if(gamepadConnected){
-            if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) > deadzone){
+            if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) > deadzone){ //Alter to if(shadowController.movingLeft())? Or abstract entire controller checking section into shadowController.cc?
                 player.x += xVel;
                 needRender = true;
             }
