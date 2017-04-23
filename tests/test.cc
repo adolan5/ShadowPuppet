@@ -30,13 +30,13 @@ static SDL_Event event;
 static bool gameRunning = true;
 static bool gamepadConnected = false;
 //Player rect (to be replaced with player class by Bhua)
-static SDL_Rect player;
+static SDL_Rect player;										//Will be replaced by player class by bhua
 //X and Y velocities for our player
-static const int xVel = 5;
-static int yVel = 0;
+static const int xVel = 5;									//Will go inside player class
+static int yVel = 0;										//---------------------------
 //Bool for if a render is even needed (save a screen swap)
 static bool needRender = true;
-static bool jumping = false;
+static bool jumping = false;								//Also going into player class?
 //Vector of platform rects
 static vector<SDL_Rect> platforms;
 //Bool for if platforms are present
@@ -207,7 +207,7 @@ void playGame(){
 			}
 		}
         
-        //Keeping the player on screen
+        //Keeping the player on screen		Replace with player.borderCollision()
         if(player.x < 0){
             player.x = 0;
         }
