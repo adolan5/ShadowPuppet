@@ -10,7 +10,6 @@
 using namespace std;
 
 //Function declarations
-void openGamepad();
 int initialize();
 void quitGame();
 void playGame();
@@ -23,9 +22,6 @@ static const int WINDOW_HEIGHT = 480;
 static const int WINDOW_WIDTH = 640;
 //Pointers for our window and renderer, and controller
 static SDL_Window *window;
-static SDL_GameController *controller; //Could go in shadowController.cc
-//Controller deadzone
-static const int deadzone = 8000;		//Could go in shadowController.cc
 //An event to be polled
 static SDL_Event event;
 //Keyboard state
@@ -43,7 +39,10 @@ static bool platformsPresent = false;
 //Player instance (Courtesy of Bhua)
 static Player player(0, 440);
 //SHADOW RENDERER (Yay organization!)
-static ShadowRenderer renderer(WINDOW_HEIGHT, WINDOW_WIDTH);
+static ShadowRenderer renderer(480, 640);
+
+//SHADOW CONTROLLER
+static ShadowController ctrl(8000);
 
 //A vector of pairs, for TESTING ONLY!
 vector<pair<int,int> > testVec = {make_pair(400, 400), make_pair(285, 360), make_pair(100, 280), make_pair(250, 100)};
@@ -75,7 +74,7 @@ int initialize(){
     player.height = 40;
     
     //Opening the gamepad if one is connected
-    openGamepad();		//shadowController.openGamepad()?
+    gamepadConnected = ctrl.openGamepad();
 	
 	//Getting keyboard state
 	state = SDL_GetKeyboardState(NULL);
@@ -88,23 +87,10 @@ int initialize(){
 void quitGame(){
     SDL_DestroyWindow(window);
     if(gamepadConnected){
-        SDL_GameControllerClose(controller);		//Let dtor of shadowController handle closing down a controller?
+        ctrl.closeGamepad();
     }
     SDL_Quit();
 	//Note: ShadowRenderer's dtor takes care of destroying textures and shutting down SDL_Image
-}
-
-//Function to open a gamepad
-void openGamepad(){		//Could go in shadowController.cc
-    int joysticks = SDL_NumJoysticks();
-    //Loop through the joysticks, if it's a valid controller, open it
-    for(int joystickIndex = 0; joystickIndex < joysticks; ++joystickIndex){
-        if(!SDL_IsGameController(joystickIndex)){
-            continue;
-        }
-        controller = SDL_GameControllerOpen(joystickIndex);
-        gamepadConnected = true;
-    }
 }
 
 //Main game function
@@ -122,11 +108,11 @@ void playGame(){
         }
         //If a controller is connected during run
         if((event.type == SDL_CONTROLLERDEVICEADDED) && (!gamepadConnected)){
-            openGamepad(); 		//shadowController.openGamepad()?
+            gamepadConnected = ctrl.openGamepad();
         }
         //If controller is disconnected during run
         if(event.type == SDL_CONTROLLERDEVICEREMOVED){
-            SDL_GameControllerClose(controller);	//shadowController.close()?
+            ctrl.closeGamepad();
             gamepadConnected = false;
         }
         
@@ -159,7 +145,7 @@ void playGame(){
 		
         //Controller input
         if(gamepadConnected){
-            if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) > deadzone){ //Alter to if(shadowController.movingLeft())? Or abstract entire controller checking section into shadowController.cc?
+            if(SDL_GameControllerGetAxis(ctrl.getController(), SDL_CONTROLLER_AXIS_LEFTX) > ctrl.getDeadzone()){ //Alter to if(shadowController.movingLeft())? Or abstract entire controller checking section into shadowController.cc?
                 player.moveRight();
                 needRender = true;
 				if(collision() != -1){
@@ -167,7 +153,7 @@ void playGame(){
 					needRender = false;
 				}
             }
-            if(SDL_GameControllerGetAxis(controller, SDL_CONTROLLER_AXIS_LEFTX) < -deadzone){
+            if(SDL_GameControllerGetAxis(ctrl.getController(), SDL_CONTROLLER_AXIS_LEFTX) < -(ctrl.getDeadzone())){
                 player.moveLeft();
                 needRender = true;
 				if(collision() != -1){
@@ -175,13 +161,13 @@ void playGame(){
 					needRender = false;
 				}
             }
-            if(SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_A) == 1){
+            if(SDL_GameControllerGetButton(ctrl.getController(), SDL_CONTROLLER_BUTTON_A) == 1){
 				player.jump();
 			}
-			if(SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_B) == 1){
+			if(SDL_GameControllerGetButton(ctrl.getController(), SDL_CONTROLLER_BUTTON_B) == 1){
 				gameRunning = false;
 			}
-			if(SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_X) == 1){
+			if(SDL_GameControllerGetButton(ctrl.getController(), SDL_CONTROLLER_BUTTON_X) == 1){
 				generatePlatforms(testVec);
 			}
         }

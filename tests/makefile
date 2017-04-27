@@ -5,7 +5,7 @@ EXE = test
 C_SRCS = test.cc
 
 test: shadowRender.o Player.o shadowController.o test.cc
-	$(CC) -o $(EXE) $(C_SRCS) Player.o shadowRender.o $(LINKER_FLAGS) $(C_Flags)
+	$(CC) -o $(EXE) $(C_SRCS) Player.o shadowRender.o shadowController.o $(LINKER_FLAGS) $(C_Flags)
 	
 shadowRender.o: shadowRender.h shadowRender.cc
 	$(CC) $(LINKER_FLAGS) $(C_Flags) -c shadowRender.cc
