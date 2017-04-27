@@ -1,10 +1,11 @@
+#include "shadowRender.h"
+#include "Player.h"
+#include "shadowController.h"
 #include <iostream>
 #include <string>
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <vector>
-#include "shadowRender.h"
-#include "Player.h"
 
 using namespace std;
 
