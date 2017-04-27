@@ -17,9 +17,6 @@ void generatePlatforms(vector<pair<int, int> > coordPairs); //TODO: Integration 
 int collision();
 
 /*          Private variables       */
-//Window dimensions
-static const int WINDOW_HEIGHT = 480;
-static const int WINDOW_WIDTH = 640;
 //Pointers for our window and renderer, and controller
 static SDL_Window *window;
 //An event to be polled
@@ -56,7 +53,7 @@ int initialize(){
     }
     
     //Creating a window
-    window = SDL_CreateWindow("ShadowPuppet", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
+    window = SDL_CreateWindow("ShadowPuppet", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, renderer.getWidth(), renderer.getHeight(), SDL_WINDOW_OPENGL);
     if(window == NULL){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create window! Error: %s\n", SDL_GetError());
         return 1;

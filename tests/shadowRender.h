@@ -23,6 +23,10 @@ class ShadowRenderer{
 		
 		//Render textures
 		void glRender(Player player, bool platformsPresent, std::vector<SDL_Rect> &platforms);
+		
+		//Get window height and width
+		const int getHeight();
+		const int getWidth();
 			
 	private:
 		

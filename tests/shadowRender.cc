@@ -114,3 +114,12 @@ bool ShadowRenderer::loadTexture(string image, GLuint &textureID){
     SDL_FreeSurface(surface);
     return true;
 }
+
+//Getters for window height and width
+const int ShadowRenderer::getHeight(){
+	return WINDOW_HEIGHT;
+}
+
+const int ShadowRenderer::getWidth(){
+	return WINDOW_WIDTH;
+}
