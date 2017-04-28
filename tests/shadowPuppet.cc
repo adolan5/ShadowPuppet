@@ -1,4 +1,6 @@
-/*Implementation for the main shadowPuppet class!*/
+/*Implementation for the main shadowPuppet class!
+  Author: Andy Dolan
+*/
 #include "shadowPuppet.h"
 
 using namespace std;

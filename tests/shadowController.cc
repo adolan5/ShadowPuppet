@@ -1,4 +1,5 @@
 //Class implementation for controller functionality in ShadowPuppet
+//Author: Andy D.
 #include "shadowController.h"
 
 using namespace std;

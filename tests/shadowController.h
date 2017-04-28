@@ -1,4 +1,5 @@
 //Class to handle controller functionality in ShadowPuppet
+//Author: Andy Dolan
 #ifndef CONTROLLER_INCLUDED
 #define CONTROLLER_INCLUDED
 

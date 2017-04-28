@@ -1,4 +1,6 @@
-/*Main class for ShadowPuppet!*/
+/*Main class for ShadowPuppet!
+  Author: Andy Dolan
+*/
 #ifndef GAME_INCLUDED
 #define GAME_INCLUDED
 
@@ -12,7 +14,7 @@
 
 class ShadowPuppet{
 	public:
-		//Constructor calls initialize
+		//Constructor initializes all the variables with their proper values
 		ShadowPuppet();
 		
 		//Function to initialize SDL and other libraries
