@@ -1,3 +1,8 @@
+/*PLEASE NOTE:
+	This program has been transferred into a more structured class called shadowPuppet.cc. It is out of date
+	and should NOT be used in the final product!
+*/
+
 #include "shadowRender.h"
 #include "Player.h"
 #include "shadowController.h"
