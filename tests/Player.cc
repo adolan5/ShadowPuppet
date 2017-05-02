@@ -30,7 +30,9 @@ using namespace std;
 		if(falling){
 			yvel += 1;
 			y+= yvel;
-
+			if(yvel > 28){
+				yvel = 28;	//Cap for the yVel, just to be safe
+			}
 		}
 		borderCollision();
 	}
