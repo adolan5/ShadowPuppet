@@ -162,10 +162,11 @@ void ShadowPuppet::generatePlatforms(vector<pair<int, int> > coordPairs){
 	for(auto v : coordPairs){
 		//Make a new rect and push it onto the platform vector
 		SDL_Rect temp;
-		temp.x = v.first;
-		temp.y = v.second;
-		temp.w = 100;
-		temp.h = 25;
+		temp.w = 50;
+		temp.h = 10;
+		//These two lines place the very center of the platform at the coord
+		temp.x = (v.first - (temp.w / 2));
+		temp.y = (v.second - (temp.h /2));
 		platforms.push_back(temp);
 	}
 	platformsPresent = true;

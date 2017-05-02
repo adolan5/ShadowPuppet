@@ -68,7 +68,7 @@ class ShadowPuppet{
 		ShadowController ctrl;
 
 		//A vector of pairs, for TESTING ONLY!
-		std::vector<std::pair<int,int> > testVec = {std::make_pair(400, 400), std::make_pair(285, 360), std::make_pair(100, 280), std::make_pair(250, 100)};
+		std::vector<std::pair<int,int> > testVec = {std::make_pair(400, 400), std::make_pair(285, 360), std::make_pair(100, 280), std::make_pair(250, 100), std::make_pair(0,480)};
 };
 
 
