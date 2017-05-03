@@ -4,9 +4,9 @@
 #ifndef GAME_INCLUDED
 #define GAME_INCLUDED
 
-#include "shadowRender.h"
+#include "Render.h"
 #include "Player.h"
-#include "shadowController.h"
+#include "Controller.h"
 #include <string>
 #include <SDL.h>
 #include <SDL_opengl.h>

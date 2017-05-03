@@ -1,7 +1,7 @@
 /*Implementation for the main shadowPuppet class!
   Author: Andy Dolan
 */
-#include "shadowPuppet.h"
+#include "Game.h"
 
 using namespace std;
 

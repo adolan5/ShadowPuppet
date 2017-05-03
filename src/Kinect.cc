@@ -1,4 +1,4 @@
-#include "K.h"
+#include "Kinect.h"
 
 void Depth::roberts_cross(){
 	for( int i = 0; i < DIM_Y; i++ ){

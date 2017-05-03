@@ -1,5 +1,5 @@
 /*Game driver for ShadowPuppet!*/
-#include "shadowPuppet.h"
+#include "Game.h"
 #include <iostream>
 
 using namespace std;
