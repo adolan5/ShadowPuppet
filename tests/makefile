@@ -1,16 +1,21 @@
 CC = g++
-CXXFLAGS = -std=c++11 -Wall -ggdb
+CXXFLAGS = -std=c++11 -ggdb
 LINKER_FLAGS = -lfreenect -lfreenect_sync -lusb-1.0 -lpthread
 EXE = test
 SOURCES = K.cc K_main.cc
-OBJECTS = $(SOURCES: .cc=.o)
+OBJECTS = $(SOURCES:.cc=.o)
 
-all: $(OBJECTS)
-	$(CC) $(CXXFLAGS) -o $(EXE) $^  $(LINKER_FLAGS)
+all: $(EXE)
+	@echo Finished.
 
-$(OBJECTS): $(SOURCES)
-	$(CC) $(CXXFLAGS) $< -c $@
+$(EXE): $(OBJECTS)
+	@echo Linking to EXE.
+	@$(CC) $(CXXFLAGS) -o $@ $^ $(LINKER_FLAGS)
 
+%.o: %.cc
+	@echo Compiling $< to object.
+	@$(CC) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	-rm -f $(EXE) *.o
+	@echo Cleaning files.
+	@-rm -f $(EXE) *.pbm *.o

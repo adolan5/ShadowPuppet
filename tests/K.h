@@ -17,19 +17,25 @@ class Depth{
 		short* depth;
 		int range;
 	public:
-		Depth( int r ):
-			range(r){
-			depth_state = 0;
+		Depth( int r ): range(r){
+			depth = 0;
 			
 			if( freenect_sync_set_tilt_degs(0, 0) < 0 ){
 				cerr << "NO KINECT\n";
 				throw string("Can't access kinect");
 			}
 		}
+		~Depth(){
+			free( depth );
+		}		
+
 		void roberts_cross();
+		void dilate();
+		
+		void get_depth();
 		void limit_depth();
-		void save_depth( string filename );
-		void snapshot( int timer );
+		void save_depth( const string& filename );
+		void snapshot( );
 };
 
 #endif
