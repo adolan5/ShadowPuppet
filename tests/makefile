@@ -1,37 +1,21 @@
 CC = g++
-C_Flags = -std=c++11 -Wfatal-errors -Wall `sdl2-config --cflags` `sdl2-config --libs`
-LINKER_FLAGS = -lGL -lSDL2_image
-EXE = game
+CXXFLAGS = -std=c++11 -ggdb `sdl2-config --cflags` `sdl2-config --libs`
+LINKER_FLAGS = -lfreenect -lfreenect_sync -lusb-1.0 -lpthread -lGL -lSDL2_image
+EXE = test
+SOURCES = K.cc K_main.cc #Need to add other C_SRCs
+OBJECTS = $(SOURCES:.cc=.o)
 
-game: shadowRender.o Player.o shadowController.o shadowPuppet.o game.cc
-	$(CC) -o $(EXE) game.cc Player.o shadowRender.o shadowController.o shadowPuppet.o $(LINKER_FLAGS) $(C_Flags)
-	
-shadowRender.o: shadowRender.h shadowRender.cc
-	$(CC) $(LINKER_FLAGS) $(C_Flags) -c shadowRender.cc
+all: $(EXE)
+	@echo Finished.
 
-debug_render: shadowRender.h shadowRender.cc
-	$(CC) $(LINKER_FLAGS) -ggdb $(C_Flags) -c shadowRender.cc
-	
-Player.o: Player.cc Player.h
-	$(CC) $(LINKER_FLAGS) $(C_Flags) -c Player.cc
-	
-debug_player: Player.cc Player.h
-	$(CC) $(LINKER_FLAGS) -ggdb $(C_Flags) -c Player.cc
-	
-shadowController.o: shadowController.h shadowController.cc
-	$(CC) $(LINKER_FLAGS) $(C_Flags) -c shadowController.cc
-	
-debug_controller: shadowController.h shadowController.cc
-	$(CC) $(LINKER_FLAGS) -ggdb $(C_Flags) -c shadowController.cc
-	
-shadowPuppet.o: shadowPuppet.h shadowPuppet.cc
-	$(CC) $(LINKER_FLAGS) $(C_Flags) -c shadowPuppet.cc
+$(EXE): $(OBJECTS)
+	@echo Linking to EXE.
+	@$(CC) $(CXXFLAGS) -o $@ $^ $(LINKER_FLAGS)
 
-debug_puppet: shadowPuppet.h shadowPuppet.cc
-	$(CC) $(LINKER_FLAGS) -ggdb $(C_Flags) -c shadowPuppet.cc
-	
-debug: debug_render debug_player debug_controller debug_puppet
-	$(CC) -o $(EXE) game.cc Player.o shadowRender.o shadowController.o shadowPuppet.o -ggdb $(LINKER_FLAGS) $(C_Flags)
-	
+%.o: %.cc
+	@echo Compiling $< to object.
+	@$(CC) $(CXXFLAGS) -c $< -o $@
+
 clean:
-	rm -f $(EXE) *.o
+	@echo Cleaning files.
+	@-rm -f $(EXE) *.pbm *.o
