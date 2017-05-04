@@ -7,6 +7,7 @@
 #include "Render.h"
 #include "Player.h"
 #include "Controller.h"
+#include "Kinect.h"
 #include <string>
 #include <SDL.h>
 #include <SDL_opengl.h>

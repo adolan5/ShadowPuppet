@@ -42,15 +42,15 @@ bool ShadowRenderer::initializeGL(SDL_Window *window){
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
     //Loading the textures we're using
-    if(!loadTexture(string("../images/marblePng.png"), backgroundTexture)){
+    if(!loadTexture(string("images/marblePng.png"), backgroundTexture)){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load texture from string! Error: %s\n", SDL_GetError());
         return false;
     }
-    if(!loadTexture(string("../images/cam.png"), playerTexture)){
+    if(!loadTexture(string("images/cam.png"), playerTexture)){
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load texture from string! Error: %s\n", SDL_GetError());
         return false;
     }
-    if(!loadTexture(string("../images/Platform.png"), platformTexture)){
+    if(!loadTexture(string("images/Platform.png"), platformTexture)){
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to load platform texture from string! Error: %s\n", SDL_GetError());
 		return false;
 	}

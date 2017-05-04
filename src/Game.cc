@@ -45,6 +45,7 @@ int ShadowPuppet::initialize(){
 }
 
 void ShadowPuppet::playGame(){
+	Depth kinect_object(900);
 	//Main game loop
 	while(gameRunning){
 		SDL_Delay(10); //Trying to use this, keeping controller handling out of event polling
@@ -113,11 +114,12 @@ void ShadowPuppet::playGame(){
 			if(SDL_GameControllerGetButton(ctrl.getController(), SDL_CONTROLLER_BUTTON_A) == 1){
 				player.jump();
 			}
-			if(SDL_GameControllerGetButton(ctrl.getController(), SDL_CONTROLLER_BUTTON_B) == 1){
+			if(SDL_GameControllerGetButton(ctrl.getController(), SDL_CONTROLLER_BUTTON_BACK) == 1){
 				gameRunning = false;
 			}
 			if(SDL_GameControllerGetButton(ctrl.getController(), SDL_CONTROLLER_BUTTON_X) == 1){
-				generatePlatforms(testVec);
+				auto plat_list = kinect_object.get_coords();
+				generatePlatforms(plat_list);
 			}
 		}
 		//Update player's y position, only happens when jumping (or falling)
@@ -162,7 +164,7 @@ void ShadowPuppet::generatePlatforms(vector<pair<int, int> > coordPairs){
 	for(auto v : coordPairs){
 		//Make a new rect and push it onto the platform vector
 		SDL_Rect temp;
-		temp.w = 50;
+		temp.w = 10;
 		temp.h = 10;
 		//These two lines place the very center of the platform at the coord
 		temp.x = (v.first - (temp.w / 2));

@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <libfreenect.h>
 #include <libfreenect_sync.h>
+#include <vector>
+#include <utility>
 
 #ifndef KINECT_H
 #define KINECT_H
@@ -29,9 +31,12 @@ class Depth{
 			free( depth );
 		}		
 
+		vector<pair<int,int>> get_coords();
+
 		void roberts_cross();
 		void dilate();
-		
+	
+		void standard_collection(bool test);	
 		void get_depth();
 		void limit_depth();
 		void save_depth( const string& filename );

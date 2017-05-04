@@ -20,6 +20,9 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cc
 	@echo Compiling $< to object.
 	@$(CC) $(CXXFLAGS) -c $< -o $@ $(LINKER_FLAGS) -I$(H_DIR) 
 
+test: $(EXE)
+	@echo Running test after build step.
+	@./Game
 
 clean:
 	@echo Cleaning files.
