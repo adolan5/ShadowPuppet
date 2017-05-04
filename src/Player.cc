@@ -7,9 +7,10 @@ using namespace std;
 	Player::Player(int x, int y){
 	this->x = x;
 	this->y = y;
-	this->xvel = 5;
-	this->width = 40;
-	this->falling = false;
+	xvel = 5;
+	height = 40;
+	width = 40;
+	falling = false;
 	}
 
 	// all jumping/falling
@@ -47,23 +48,23 @@ using namespace std;
 	//border collision take into account that it looks at top left corner
 	void Player::borderCollision(){
 		//this case accounts for hitting the ground
-		if(y + height > 480){
+		if(y + height > 720){
 		   falling = false;
 		   yvel = 0;
-		   y = 440;
+		   y = 720-height;
 		}
 		// if it the player tries to go past the roof
 		if(y <= 0){
 		   falling = true;
-		   y = 0;
+		   y = 0+height;
 		}
 		//the left side...
 		if(x <= 0){
 		   x = 0;
 		}
 		//finally the right
-		if(x + width>= 640){	
-		   x = 600;
+		if(x + width>= 1080){	
+		   x = 1080-width;
 		}
 	
 	}

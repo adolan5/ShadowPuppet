@@ -72,7 +72,7 @@ vector<pair<int,int>> Depth::get_coords(){
 	for( int i = 0; i < DIM_Y; i++){
 		for( int j = 0; j < DIM_X; j++ ){
 			if( depth[i*DIM_X+j] == 1 ){
-				p.first = j;
+				p.first = DIM_X - j;	// Mirrored for niceness
 				p.second = i;
 				v.push_back(p);
 			}

@@ -7,7 +7,7 @@ using namespace std;
 
 //Ctor initializes all our variables
 ShadowPuppet::ShadowPuppet(): player(0, 440), gameRunning(true), gamepadConnected(false), needRender(true), 
-	platformsPresent(false), renderer(480, 640), ctrl(8000) {		}
+	platformsPresent(false), renderer(WIN_Y, WIN_X), ctrl(8000) {		}
 
 
 int ShadowPuppet::initialize(){
@@ -28,12 +28,6 @@ int ShadowPuppet::initialize(){
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create OpenGL context. Error: %s\n", SDL_GetError());
 		return 1;
 	}
-
-	//Setting player initial position
-	player.x = 0;
-	player.y = 440;
-	player.width = 40;
-	player.height = 40;
 
 	//Opening the gamepad if one is connected
 	gamepadConnected = ctrl.openGamepad();
@@ -136,7 +130,7 @@ void ShadowPuppet::playGame(){
 				player.yvel = 10;
 			}
 		}
-		else if(player.y < 440){
+		else if(player.y < WIN_Y-player.height){
 			player.falling = true;
 		}
 		
@@ -164,11 +158,11 @@ void ShadowPuppet::generatePlatforms(vector<pair<int, int> > coordPairs){
 	for(auto v : coordPairs){
 		//Make a new rect and push it onto the platform vector
 		SDL_Rect temp;
-		temp.w = 10;
-		temp.h = 10;
+		temp.w = 5;
+		temp.h = 5;
 		//These two lines place the very center of the platform at the coord
-		temp.x = (v.first - (temp.w / 2));
-		temp.y = (v.second - (temp.h /2));
+		temp.x = (v.first - (temp.w / 2)) / (640.0/WIN_X);
+		temp.y = (v.second - (temp.h /2)) / (480.0/WIN_Y);
 		platforms.push_back(temp);
 	}
 	platformsPresent = true;

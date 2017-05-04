@@ -13,6 +13,9 @@
 #include <SDL_opengl.h>
 #include <vector>
 
+const int WIN_X = 1080;
+const int WIN_Y = 720;
+
 class ShadowPuppet{
 	public:
 		//Constructor initializes all the variables with their proper values

@@ -5,3 +5,4 @@ Third-party prerequisites:
 -SDL2
 -SDL2-image (Note: Be sure to use SDL2-image as opposed to SDL-image!)
 -OpenGL (using v2.1)
+-libfreenect
