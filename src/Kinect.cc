@@ -70,7 +70,7 @@ vector<pair<int,int>> Depth::get_coords(){
 	standard_collection();
 
 	for( int i = 0; i < DIM_Y; i++){
-		for( int j = 0; j < DIM_Y; j++ ){
+		for( int j = 0; j < DIM_X; j++ ){
 			if( depth[i*DIM_X+j] == 1 ){
 				p.first = j;
 				p.second = i;
@@ -91,9 +91,9 @@ void Depth::save_depth( const string& filename ){
 	ofile << '\n';
 	ofile << "640 480\n";
 	
-	for( int i = 0; i < 480; i++ ){
-		for( int j = 0; j < 640; j++ ){
-			if( depth[i*640+j] )
+	for( int i = 0; i < DIM_Y; i++ ){
+		for( int j = 0; j < DIM_X; j++ ){
+			if( depth[i*DIM_X+j] )
 				ofile << 1;
 			else
 				ofile << 0;
